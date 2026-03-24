@@ -1,319 +1,63 @@
  <!DOCTYPE html>
 <html>
 <head>
-  <title>Physics Test Portal</title>
+  <title>Physics Test Series</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body{margin:0;font-family:'Segoe UI',Arial;background:#0f172a;color:white;}
     .navbar{display:flex;justify-content:space-between;padding:15px 25px;background:#020617;}
     .logo{font-size:20px;font-weight:bold;color:#38bdf8;cursor:pointer;}
     .menu a{color:white;margin-left:20px;text-decoration:none;cursor:pointer;}
     .menu a:hover{color:#38bdf8;}
-    .container{max-width:900px;margin:20px auto;padding:20px;border-radius:10px;background:#1e293b;display:none;}
-    input,textarea,select{padding:10px;width:95%;margin:8px 0;border-radius:5px;border:none;}
-    .btn{padding:10px 20px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;}
+    .container{max-width:800px;margin:30px auto;padding:20px;border-radius:10px;background:#1e293b;}
+    input{padding:10px;width:95%;margin:10px 0;border-radius:5px;border:none;}
+    .btn{padding:12px 20px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;width:100%;}
     .btn:hover{background:#0ea5e9;}
-    .answer-btn{display:block;margin:10px 0;padding:10px;width:100%;background:#38bdf8;border:none;border-radius:5px;cursor:pointer;}
-    .answer-btn:hover{background:#0ea5e9;}
-    .correct{color:green;font-weight:bold;}
-    .wrong{color:red;font-weight:bold;}
-    #timer-bar-container{width:100%;background:#334155;border-radius:5px;margin:10px 0;height:20px;}
-    #timer-bar{width:100%;height:100%;background:#38bdf8;border-radius:5px;transition:width 1s linear;}
-    #timer-text{text-align:right;margin-top:-20px;font-size:14px;}
-    .tracker button{width:40px;height:40px;margin:5px;border:none;border-radius:5px;font-weight:bold;cursor:pointer;}
-    table{width:100%;border-collapse:collapse;margin-top:15px;}
-    th,td{padding:10px;border:1px solid #38bdf8;text-align:left;}
-    th{background:#0ea5e9;}
-    .footer{text-align:center;padding:15px;background:#020617;margin-top:20px;font-size:14px;}
+    .footer{text-align:center;padding:15px;background:#020617;margin-top:30px;}
   </style>
 </head>
+
 <body>
 
 <div class="navbar">
-  <div class="logo" onclick="showSlide('home')">Home</div>
-  <div class="menu">
-    <a onclick="showSlide('results')">Results</a>
-    <a onclick="showAdmin()">Admin</a>
-  </div>
+  <div class="logo" onclick="location.reload()">Physics Test</div>
 </div>
 
-<!-- Slide 1: Home / Instructions -->
-<div class="container" id="home">
-  <h1>Welcome to Physics Test Portal</h1>
-  <p>Follow these steps:</p>
-  <ol>
-    <li>Click "Next" to enter your details</li>
-    <li>Start the test</li>
-    <li>Each question has 30s time limit</li>
-    <li>Correct answer → Green, Wrong → Red</li>
-    <li>Last question auto-submits</li>
-    <li>Provide feedback after test</li>
-  </ol>
-  <button class="btn" onclick="showSlide('form')">Next</button>
+<div class="container">
+  <h1>Welcome to Physics Test Series</h1>
+  <p>Enter your details and select chapter to start test.</p>
+
+  <input type="text" id="name" placeholder="Enter Name">
+  <input type="email" id="email" placeholder="Enter Email">
+
+  <h3>Select Chapter</h3>
+
+  <button class="btn" onclick="startTest('chapter1.html')">Chapter 1</button>
+  <button class="btn" onclick="startTest('chapter2.html')">Chapter 2</button>
+  <button class="btn" onclick="startTest('chapter3.html')">Chapter 3</button>
 </div>
 
-<!-- Slide 2: Student Form -->
-<div class="container" id="form">
-  <h2>Enter Your Details</h2>
-  <input type="text" id="studentName" placeholder="Enter your name" required>
-  <input type="email" id="studentEmail" placeholder="Enter your email" required>
-  <h3>Select Chapter:</h3>
-  <div id="chapter-container"></div>
-</div>
-
-<!-- Slide 3: Test Section -->
-<div class="container" id="test">
-  <div id="timer-bar-container"><div id="timer-bar"></div></div>
-  <div id="timer-text"></div>
-  <div id="question-container"></div>
-  <div class="tracker" id="question-tracker"></div>
-</div>
-
-<!-- Slide 4: Results -->
-<div class="container" id="results">
-  <h2>Test Results</h2>
-  <p id="student-info"></p>
-  <p id="score"></p>
-  <div id="review"></div>
-
-  <!-- Feedback Section -->
-  <div id="feedback-section">
-    <h3>Rate this Test</h3>
-    <label for="rating">Rating (1-5): </label>
-    <select id="rating">
-      <option value="">Select</option>
-      <option value="1">1 - Poor</option>
-      <option value="2">2 - Fair</option>
-      <option value="3">3 - Good</option>
-      <option value="4">4 - Very Good</option>
-      <option value="5">5 - Excellent</option>
-    </select>
-    <textarea id="feedback-text" placeholder="Write your feedback here..." rows="3"></textarea>
-    <button class="btn" onclick="submitFeedback()">Submit Feedback</button>
-    <p id="feedback-msg" style="color:lightgreen;font-weight:bold;"></p>
-    <button class="btn" onclick="showSlide('home')">Complete</button>
-  </div>
-</div>
-
-<!-- Slide 5: Admin Dashboard -->
-<div class="container" id="admin" style="display:none;">
-  <h2>Admin Dashboard</h2>
-  <button class="btn" onclick="adminReset()">Reset Results</button>
-  <p>Total Students Taken Tests: <span id="admin-total-students">0</span></p>
-
-  <h3>Student Scores</h3>
-  <table id="results-table">
-    <thead>
-      <tr><th>Name</th><th>Email</th><th>Chapter</th><th>Score</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h3>Student Feedbacks</h3>
-  <table id="feedback-table">
-    <thead>
-      <tr><th>Name</th><th>Email</th><th>Chapter</th><th>Rating</th><th>Comment</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div class="footer">© 2026 Physics Test Series | Made by You 😎</div>
+<div class="footer">© 2026 Physics Test Series</div>
 
 <script>
-let student={name:"",email:""};
-let currentChapter=null, currentQ=0, userAnswers=[];
-let timerInterval,timeLeft=30;
+function startTest(page){
+  let name=document.getElementById("name").value.trim();
+  let email=document.getElementById("email").value.trim();
 
-const chapters=[
-  {name:"Chapter 1 - Part 1", questions:[
-    {q:"Unit of electric charge?", options:["Coulomb","Newton","Joule","Watt"], answer:0},
-    {q:"Electron has what charge?", options:["Positive","Negative","Neutral","Depends"], answer:1},
-    {q:"Coulomb's law relates what?", options:["Charge & Force","Mass & Acceleration","Voltage & Current","Energy & Time"], answer:0}
-  ]},
-  {name:"Chapter 2", questions:[]},
-  {name:"Chapter 3", questions:[]}
-];
-
-function showSlide(id){
-  ["home","form","test","results","admin"].forEach(s=>document.getElementById(s).style.display="none");
-  document.getElementById(id).style.display="block";
-}
-
-// Initialize chapters buttons in form slide
-const chapterContainer=document.getElementById('chapter-container');
-chapters.forEach((ch,i)=>{
-  const btn=document.createElement('button');
-  btn.className="btn";
-  if(ch.questions.length>0){
-    btn.innerText=ch.name; btn.onclick=()=>startChapter(i);
-  } else {
-    btn.innerText=ch.name+" (Coming Soon)"; btn.disabled=true;
-  }
-  chapterContainer.appendChild(btn);
-});
-
-// Start chapter
-function startChapter(idx){
-  const name=document.getElementById('studentName').value.trim();
-  const email=document.getElementById('studentEmail').value.trim();
-  if(!name||!email){alert("Enter name & email"); return;}
-  
-  let results=JSON.parse(localStorage.getItem("results")||"[]");
-  if(results.some(r=>r.email===email && r.chapter===chapters[idx].name)){
-    alert("You already attempted this chapter!"); return;
+  if(!name || !email){
+    alert("Please enter name and email");
+    return;
   }
 
-  student={name,email};
-  currentChapter=idx; currentQ=0; userAnswers=[];
-  showSlide('test');
-  initTracker();
-  showQuestion();
+  // Save data for next page
+  localStorage.setItem("studentName", name);
+  localStorage.setItem("studentEmail", email);
+
+  // Redirect to chapter page
+  window.location.href = page;
 }
-
-// Question tracker
-function initTracker(){
-  const tracker=document.getElementById('question-tracker');
-  tracker.innerHTML="";
-  chapters[currentChapter].questions.forEach((q,i)=>{
-    const btn=document.createElement('button');
-    btn.id="q-btn-"+i; btn.innerText=i+1; tracker.appendChild(btn);
-  });
-}
-
-// Show question
-function showQuestion(){
-  const container=document.getElementById('question-container');
-  container.innerHTML=""; clearInterval(timerInterval); timeLeft=30; updateTimer();
-  const qArr=chapters[currentChapter].questions;
-  if(currentQ<qArr.length){
-    const q=qArr[currentQ];
-    container.innerHTML=<strong>Q${currentQ+1}: ${q.q}</strong>;
-    ["A","B","C","D"].forEach((l,i)=>{
-      const btn=document.createElement('button'); btn.className="answer-btn";
-      btn.innerText=${l}. ${q.options[i]};
-      btn.onclick=()=>selectAnswer(i);
-      container.appendChild(btn);
-    });
-    timerInterval=setInterval(()=>{timeLeft--; updateTimer(); if(timeLeft<=0){clearInterval(timerInterval); selectAnswer(null);}},1000);
-  } else submitTest();
-}
-
-function updateTimer(){
-  document.getElementById('timer-bar').style.width=(timeLeft/30*100)+"%";
-  document.getElementById('timer-text').innerText=timeLeft+"s left";
-}
-
-// Answer selected
-function selectAnswer(idx){
-  const qArr=chapters[currentChapter].questions;
-  userAnswers.push(idx);
-  const btn=document.getElementById("q-btn-"+currentQ);
-  if(idx===qArr[currentQ].answer) btn.style.background="green"; else btn.style.background="red";
-  currentQ++; showQuestion();
-}
-
-// Submit test
-function submitTest(){
-  clearInterval(timerInterval); showSlide('results');
-  const qArr=chapters[currentChapter].questions;
-  let score=0, reviewHTML="<h3>Review:</h3>";
-  qArr.forEach((q,i)=>{
-    if(userAnswers[i]===q.answer) score++;
-    reviewHTML+=<p>Q${i+1}: Your: ${q.options[userAnswers[i]]||"No Answer"} | Correct: ${q.options[q.answer]} ${userAnswers[i]===q.answer?'<span class="correct">✔</span>':'<span class="wrong">✖</span>'}</p>;
-  });
-  document.getElementById('student-info').innerText=Name: ${student.name}, Email: ${student.email}, Chapter: ${chapters[currentChapter].name};
-  document.getElementById('score').innerText=Score: ${score}/${qArr.length};
-
-  let allResults=JSON.parse(localStorage.getItem("results")||"[]");
-  allResults.push({name:student.name,email:student.email,chapter:chapters[currentChapter].name,score});
-  localStorage.setItem("results",JSON.stringify(allResults));
-
-  document.getElementById('review').innerHTML=reviewHTML;
-}
-
-// Feedback
-function submitFeedback(){
-  const rating=document.getElementById('rating').value;
-  const text=document.getElementById('feedback-text').value.trim();
-  if(!rating){alert("Select rating"); return;}
-
-  let feedbacks=JSON.parse(localStorage.getItem("feedbacks")||"[]");
-
-  if(feedbacks.some(f=>f.email===student.email && f.chapter===chapters[currentChapter].name)){
-    alert("You already submitted feedback for this chapter!"); return;
-  }
-
-  feedbacks.push({name:student.name,email:student.email,chapter:chapters[currentChapter].name,rating,text});
-  localStorage.setItem("feedbacks",JSON.stringify(feedbacks));
-
-  document.getElementById('feedback-msg').innerText="Thank you for your feedback!";
-  document.getElementById('rating').value="";
-  document.getElementById('feedback-text').value="";
-}
-
-// Admin
-function showAdmin(){
-  const pass=prompt("Enter Admin Password:");
-  if(pass==="PhysicsAdmin123"){ showSlide('admin'); loadAdminTable(); }
-  else alert("Access Denied!");
-}
-
-function loadAdminTable(){
-  const tbody=document.querySelector("#results-table tbody");
-  tbody.innerHTML="";
-  const results=JSON.parse(localStorage.getItem("results")||"[]");
-  document.getElementById('admin-total-students').innerText=results.length;
-  results.forEach(r=>{
-    const row=document.createElement('tr');
-    row.innerHTML=<td>${r.name}</td><td>${r.email}</td><td>${r.chapter}</td><td>${r.score}</td>;
-    tbody.appendChild(row);
-  });
-
-  const fbTbody=document.querySelector("#feedback-table tbody");
-  fbTbody.innerHTML="";
-  const feedbacks=JSON.parse(localStorage.getItem("feedbacks")||"[]");
-  feedbacks.forEach(f=>{
-    const row=document.createElement('tr');
-    row.innerHTML=<td>${f.name}</td><td>${f.email}</td><td>${f.chapter}</td><td>${f.rating}</td><td>${f.text}</td>;
-    fbTbody.appendChild(row);
-  });
-}
-
-// Fixed Admin Reset
-function adminReset(){
-  const pass = prompt("Enter Admin Password:");
-  if(pass !== "PhysicsAdmin123"){ alert("Access Denied!"); return; }
-
-  const choice = prompt("Type 'all' to reset all results or chapter number (1,2,3):");
-  if(!choice) return;
-
-  currentChapter = null; currentQ = 0; userAnswers = []; student = {name:"", email:""};
-
-  let results = JSON.parse(localStorage.getItem("results") || "[]");
-  let feedbacks = JSON.parse(localStorage.getItem("feedbacks") || "[]");
-
-  if(choice.toLowerCase() === 'all'){
-    localStorage.removeItem("results");
-    localStorage.removeItem("feedbacks");
-    alert("All results and feedback cleared!");
-  } else {
-    const chapterKey = "Chapter " + choice;
-    results = results.filter(r => r.chapter !== chapterKey);
-    feedbacks = feedbacks.filter(f => f.chapter !== chapterKey);
-    localStorage.setItem("results", JSON.stringify(results));
-    localStorage.setItem("feedbacks", JSON.stringify(feedbacks));
-    alert(chapterKey + " results and feedback cleared!");
-  }
-
-  document.querySelector("#results-table tbody").innerHTML = "";
-  document.querySelector("#feedback-table tbody").innerHTML = "";
-  document.getElementById('admin-total-students').innerText = JSON.parse(localStorage.getItem("results") || "[]").length;
-
-  showSlide('home');
-}
-
-// Load home slide on page load
-showSlide('home');
 </script>
+
 </body>
- </html>
+</html>
