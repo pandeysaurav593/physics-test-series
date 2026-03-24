@@ -6,11 +6,11 @@
   <style>
     body{margin:0;font-family:'Segoe UI',Arial;background:#0f172a;color:white;}
     .navbar{display:flex;justify-content:space-between;padding:15px 25px;background:#020617;}
-    .logo{font-size:20px;font-weight:bold;color:#38bdf8;cursor:pointer;}
+    .logo{font-size:22px;font-weight:bold;color:#38bdf8;cursor:pointer;}
     .menu a{color:white;margin-left:20px;text-decoration:none;cursor:pointer;}
     .menu a:hover{color:#38bdf8;}
-    .container{max-width:800px;margin:30px auto;padding:20px;border-radius:10px;background:#1e293b;display:none;}
-    input,textarea,select{padding:10px;width:95%;margin:10px 0;border-radius:5px;border:none;}
+    .container{max-width:800px;margin:30px auto;padding:25px;border-radius:12px;background:#1e293b;display:none;}
+    input,textarea,select{padding:12px;width:95%;margin:10px 0;border-radius:6px;border:none;}
     .btn{padding:12px 20px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;width:100%;}
     .btn:hover{background:#0ea5e9;}
     .question-container{margin-top:20px;}
@@ -22,6 +22,8 @@
     th,td{padding:10px;border:1px solid #38bdf8;text-align:left;}
     th{background:#0ea5e9;}
     .footer{text-align:center;padding:15px;background:#020617;margin-top:30px;}
+    h1,h2,h3{color:#38bdf8;}
+    p{line-height:1.5;}
   </style>
 </head>
 <body>
@@ -33,22 +35,35 @@
   </div>
 </div>
 
-<!-- Home Slide -->
+<!-- Slide 1: Home / Instructions -->
 <div class="container" id="home">
   <h1>Welcome to Physics Test Series</h1>
-  <p>Enter your details to start the test.</p>
+  <h3>Test Instructions</h3>
+  <ol>
+    <li>Each question has 30 seconds to answer.</li>
+    <li>Once a question is answered, next question appears automatically.</li>
+    <li>After the last question, you will submit your feedback.</li>
+    <li>Score and per-question review will be shown at the end.</li>
+    <li>Only one attempt per email is allowed.</li>
+  </ol>
+  <button class="btn" onclick="showSlide('info')">Next</button>
+</div>
+
+<!-- Slide 2: Student Info -->
+<div class="container" id="info">
+  <h2>Enter Your Details</h2>
   <input type="text" id="studentName" placeholder="Enter Name">
   <input type="email" id="studentEmail" placeholder="Enter Valid Email">
   <button class="btn" onclick="startTest()">Start Test</button>
 </div>
 
-<!-- Test Slide -->
+<!-- Slide 3: Test Slide -->
 <div class="container" id="test">
   <div class="timer">Time Left: <span id="timer">30</span> sec</div>
   <div class="question-container" id="question-container"></div>
 </div>
 
-<!-- Feedback Slide -->
+<!-- Slide 4: Feedback Slide -->
 <div class="container" id="feedback">
   <h2>Give your Feedback</h2>
   <label for="rating">Rating (1-5):</label>
@@ -64,7 +79,7 @@
   <button class="btn" onclick="submitFeedback()">Submit Feedback</button>
 </div>
 
-<!-- Result Slide -->
+<!-- Slide 5: Result Slide -->
 <div class="container" id="result">
   <h2>Test Completed!</h2>
   <p id="score"></p>
@@ -72,10 +87,11 @@
   <button class="btn" onclick="showSlide('home')">Go to Home</button>
 </div>
 
-<!-- Admin Slide -->
+<!-- Slide 6: Admin Slide -->
 <div class="container" id="adminSlide">
   <h2>Admin Dashboard</h2>
   <p>Total Students: <span id="totalStudents">0</span></p>
+  <button class="btn" onclick="resetAllData()">Reset All Data</button>
   <h3>Student Results</h3>
   <table>
     <thead><tr><th>Name</th><th>Email</th><th>Score</th><th>Feedback</th></tr></thead>
@@ -86,13 +102,9 @@
 <div class="footer">© 2026 Physics Test Series</div>
 
 <script>
-let student={};
-let currentQ=0;
-let answers=[];
-let timerInterval;
-let timeLeft=30;
+let student={}, currentQ=0, answers=[], timerInterval, timeLeft=30;
 
-// Questions Array
+// Questions
 const questions=[
 {q:"Electric charge ka SI unit kya hai?", options:["Newton","Joule","Coulomb","Watt"], answer:2},
 {q:"Electron par charge hota hai:", options:["Positive","Negative","Neutral","Zero"], answer:1},
@@ -108,24 +120,23 @@ const questions=[
 
 // Show slide
 function showSlide(id){
-  ["home","test","feedback","result","adminSlide"].forEach(s=>document.getElementById(s).style.display="none");
+  ["home","info","test","feedback","result","adminSlide"].forEach(s=>document.getElementById(s).style.display="none");
   document.getElementById(id).style.display="block";
 }
 
-// Validate Email Format
+// Email validation
 function isValidEmail(email){
   const re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 }
 
-// Start Test
+// Start test from info slide
 function startTest(){
-  let name=document.getElementById("studentName").value.trim();
-  let email=document.getElementById("studentEmail").value.trim();
-  if(!name || !email){alert("Enter Name and Email"); return;}
+  const name=document.getElementById("studentName").value.trim();
+  const email=document.getElementById("studentEmail").value.trim();
+  if(!name||!email){alert("Enter Name and Email"); return;}
   if(!isValidEmail(email)){alert("Enter a valid Email"); return;}
-
-  // Check if student already attempted
+  
   let data=JSON.parse(localStorage.getItem("students")||"[]");
   if(data.some(d=>d.email.toLowerCase()===email.toLowerCase())){
     alert("You have already attempted the test!");
@@ -138,7 +149,7 @@ function startTest(){
   showQuestion();
 }
 
-// Show Question
+// Show question
 function showQuestion(){
   clearInterval(timerInterval);
   timeLeft=30;
@@ -163,7 +174,7 @@ function showQuestion(){
   },1000);
 }
 
-// Select Answer
+// Select answer
 function selectAnswer(i){
   answers[currentQ]=i;
   currentQ++;
@@ -174,23 +185,25 @@ function selectAnswer(i){
   }
 }
 
-// Submit Feedback
+// Submit feedback
 function submitFeedback(){
   const rating=document.getElementById("rating").value;
   const text=document.getElementById("feedbackText").value.trim();
   if(!rating){alert("Select rating"); return;}
-  // Save Result
+  
   let score=0;
   questions.forEach((q,i)=>{if(answers[i]===q.answer) score++;});
   let percent=(score/questions.length*100).toFixed(2);
+
   let resultData={name:student.name,email:student.email,score,percent,rating,text};
   let data=JSON.parse(localStorage.getItem("students")||"[]");
   data.push(resultData);
   localStorage.setItem("students",JSON.stringify(data));
+
   showResult(score,percent);
 }
 
-// Show Result
+// Show result
 function showResult(score,percent){
   showSlide('result');
   document.getElementById("score").innerHTML=`Score: ${score}/${questions.length} | Percentage: ${percent}%`;
@@ -202,11 +215,15 @@ function showResult(score,percent){
   document.getElementById("review").innerHTML=reviewHtml;
 }
 
-// Admin Dashboard
+// Admin dashboard
 function showAdmin(){
   let pass=prompt("Enter Admin Password:");
   if(pass!=="PhysicsAdmin123"){alert("Access Denied"); return;}
   showSlide("adminSlide");
+  loadAdminData();
+}
+
+function loadAdminData(){
   const table=document.getElementById("adminTable");
   table.innerHTML="";
   const data=JSON.parse(localStorage.getItem("students")||"[]");
@@ -218,9 +235,17 @@ function showAdmin(){
   });
 }
 
-// Load Home
+// Reset all data
+function resetAllData(){
+  if(confirm("Are you sure you want to delete all student data?")){
+    localStorage.removeItem("students");
+    loadAdminData();
+    alert("All data cleared!");
+  }
+}
+
+// Load home
 showSlide('home');
 </script>
-
 </body>
 </html>
