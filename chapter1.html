@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chapter 1 Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body{font-family:Arial;background:#0f172a;color:white;margin:0;}
+    .container{max-width:800px;margin:auto;padding:20px;}
+    h1{text-align:center;}
+    .timer{text-align:right;color:#38bdf8;font-weight:bold;}
+    .question{background:#1e293b;padding:15px;margin:15px 0;border-radius:8px;}
+    label{display:block;margin:8px 0;cursor:pointer;}
+    button{width:100%;padding:12px;background:#38bdf8;border:none;border-radius:6px;font-size:16px;cursor:pointer;}
+    button:hover{background:#0ea5e9;}
+    .result{text-align:center;margin-top:20px;font-size:18px;display:none;}
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Chapter 1 Test</h1>
+  <p id="student"></p>
+  <div class="timer">Time Left: <span id="time">300</span> sec</div>
+
+  <form id="quizForm"></form>
+
+  <button onclick="submitQuiz()">Submit</button>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+
+// Get student data
+let name = localStorage.getItem("studentName") || "Guest";
+let email = localStorage.getItem("studentEmail") || "N/A";
+
+document.getElementById("student").innerText = 
+  "Name: " + name + " | Email: " + email;
+
+// Questions
+const questions = [
+{q:"Electric charge ka SI unit kya hai?", options:["Newton","Joule","Coulomb","Watt"], answer:"Coulomb"},
+{q:"Electron par charge hota hai:", options:["Positive","Negative","Neutral","Zero"], answer:"Negative"},
+{q:"Proton ka charge hota hai:", options:["Negative","Positive","Neutral","Varies"], answer:"Positive"},
+{q:"Coulomb’s Law kis relation ko batata hai?", options:["Mass aur Force","Charge aur Force","Energy aur Power","Voltage aur Current"], answer:"Charge aur Force"},
+{q:"Force depend karta hai:", options:["Distance","Charge","Medium","All of these"], answer:"All of these"},
+{q:"Like charges:", options:["Attract","Repel","Neutral","None"], answer:"Repel"},
+{q:"Unlike charges:", options:["Repel","Attract","Neutral","None"], answer:"Attract"},
+{q:"Electric field unit:", options:["N/C","Volt","Joule","Ohm"], answer:"N/C"},
+{q:"Field direction:", options:["Negative ki taraf","Positive se negative","Random","Circular"], answer:"Positive se negative"},
+{q:"Coulomb constant:", options:["9×10^9","3×10^8","6.67×10^-11","1.6×10^-19"], answer:"9×10^9"}
+];
+
+// Render questions
+const form = document.getElementById("quizForm");
+
+questions.forEach((item, index) => {
+  let div = document.createElement("div");
+  div.classList.add("question");
+
+  div.innerHTML = `<p>${index+1}. ${item.q}</p>` +
+    item.options.map(opt =>
+      `<label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label>`
+    ).join("");
+
+  form.appendChild(div);
+});
+
+// Timer (5 min)
+let time = 300;
+const timer = document.getElementById("time");
+
+const countdown = setInterval(() => {
+  time--;
+  timer.innerText = time;
+
+  if(time <= 0){
+    clearInterval(countdown);
+    submitQuiz();
+  }
+},1000);
+
+// Submit
+function submitQuiz(){
+  clearInterval(countdown);
+
+  let score = 0;
+
+  questions.forEach((q, index) => {
+    let ans = document.querySelector(`input[name="q${index}"]:checked`);
+    if(ans && ans.value === q.answer){
+      score++;
+    }
+  });
+
+  let percent = (score / questions.length) * 100;
+
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").innerHTML =
+    `Score: ${score}/${questions.length} <br> Percentage: ${percent.toFixed(2)}%`;
+}
+
+</script>
+
+</body>
+</html>
