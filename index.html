@@ -38,7 +38,7 @@
   <h1>Welcome to Physics Test Series</h1>
   <p>Enter your details to start the test.</p>
   <input type="text" id="studentName" placeholder="Enter Name">
-  <input type="email" id="studentEmail" placeholder="Enter Email">
+  <input type="email" id="studentEmail" placeholder="Enter Valid Email">
   <button class="btn" onclick="startTest()">Start Test</button>
 </div>
 
@@ -112,11 +112,26 @@ function showSlide(id){
   document.getElementById(id).style.display="block";
 }
 
+// Validate Email Format
+function isValidEmail(email){
+  const re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
 // Start Test
 function startTest(){
   let name=document.getElementById("studentName").value.trim();
   let email=document.getElementById("studentEmail").value.trim();
   if(!name || !email){alert("Enter Name and Email"); return;}
+  if(!isValidEmail(email)){alert("Enter a valid Email"); return;}
+
+  // Check if student already attempted
+  let data=JSON.parse(localStorage.getItem("students")||"[]");
+  if(data.some(d=>d.email.toLowerCase()===email.toLowerCase())){
+    alert("You have already attempted the test!");
+    return;
+  }
+
   student={name,email};
   currentQ=0; answers=[];
   showSlide('test');
