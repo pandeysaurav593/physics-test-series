@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics Test Series</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.description {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.question-box {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+}
+
+.timer {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: red;
+    margin-bottom: 15px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+.result {
+    text-align: center;
+    font-size: 20px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Physics Test Series</h1>
+    <p class="description">Test your Physics knowledge with MCQs</p>
+
+    <div class="timer" id="timer">Time Left: 5:00</div>
+
+    <form id="quizForm">
+
+        <!-- Questions -->
+        <div id="questions"></div>
+
+        <button type="button" onclick="submitQuiz()">Submit</button>
+    </form>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+
+const questions = [
+    {
+        q: "SI unit of force?",
+        options: ["Newton", "Joule", "Pascal", "Watt"],
+        answer: 0
+    },
+    {
+        q: "Speed of light?",
+        options: ["3×10^8 m/s", "3×10^6 m/s", "3×10^5 m/s", "None"],
+        answer: 0
+    },
+    {
+        q: "Unit of work?",
+        options: ["Joule", "Newton", "Watt", "Volt"],
+        answer: 0
+    },
+    {
+        q: "Gravity value on Earth?",
+        options: ["9.8 m/s²", "10 m/s²", "8 m/s²", "12 m/s²"],
+        answer: 0
+    },
+    {
+        q: "Who discovered gravity?",
+        options: ["Newton", "Einstein", "Tesla", "Galileo"],
+        answer: 0
+    },
+    {
+        q: "Unit of power?",
+        options: ["Watt", "Joule", "Newton", "Volt"],
+        answer: 0
+    },
+    {
+        q: "Acceleration unit?",
+        options: ["m/s²", "m/s", "kg", "N"],
+        answer: 0
+    },
+    {
+        q: "Ohm is unit of?",
+        options: ["Resistance", "Voltage", "Current", "Power"],
+        answer: 0
+    },
+    {
+        q: "Voltage unit?",
+        options: ["Volt", "Ampere", "Ohm", "Watt"],
+        answer: 0
+    },
+    {
+        q: "Energy unit?",
+        options: ["Joule", "Watt", "Newton", "Volt"],
+        answer: 0
+    }
+];
+
+// Render questions
+const container = document.getElementById("questions");
+
+questions.forEach((item, index) => {
+    let html = `<div class="question-box">
+        <p><b>Q${index + 1}. ${item.q}</b></p>`;
+    item.options.forEach((opt, i) => {
+        html += `<label>
+            <input type="radio" name="q${index}" value="${i}"> ${opt}
+        </label><br>`;
+    });
+    html += `</div>`;
+    container.innerHTML += html;
+});
+
+// Timer
+let time = 300;
+const timerEl = document.getElementById("timer");
+
+const countdown = setInterval(() => {
+    let minutes = Math.floor(time / 60);
+    let seconds = time % 60;
+    timerEl.textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    time--;
+
+    if (time < 0) {
+        clearInterval(countdown);
+        submitQuiz();
+    }
+}, 1000);
+
+// Submit Quiz
+function submitQuiz() {
+    clearInterval(countdown);
+
+    let score = 0;
+
+    questions.forEach((q, index) => {
+        let selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected && parseInt(selected.value) === q.answer) {
+            score++;
+        }
+    });
+
+    let percentage = (score / questions.length) * 100;
+
+    document.getElementById("result").innerHTML =
+        `Score: ${score}/${questions.length} <br> Percentage: ${percentage.toFixed(2)}%`;
+
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+</script>
+
+</body>
+</html>
