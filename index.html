@@ -20,15 +20,9 @@
       border-radius:15px;
       box-shadow:0 0 20px rgba(0,0,0,0.5);
       display:none;
-      animation:fade 0.4s ease;
     }
 
     #slide1{display:block;}
-
-    @keyframes fade{
-      from{opacity:0;transform:translateY(20px);}
-      to{opacity:1;}
-    }
 
     input,button,textarea{
       width:100%;
@@ -46,8 +40,6 @@
       cursor:pointer;
     }
 
-    button:hover{background:#0ea5e9;}
-
     .option{
       background:#334155;
       padding:12px;
@@ -55,8 +47,6 @@
       border-radius:8px;
       cursor:pointer;
     }
-
-    .option:hover{background:#475569;}
 
     .correct{background:#16a34a !important;}
     .wrong{background:#dc2626 !important;}
@@ -90,6 +80,20 @@
       border-radius:10px;
     }
 
+    /* ✅ Admin button side */
+    .admin-btn{
+      position:fixed;
+      right:10px;
+      top:10px;
+      width:auto;
+      padding:10px 15px;
+      background:#f59e0b;
+      color:black;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
     table{
       background:white;
       color:black;
@@ -102,13 +106,18 @@
 
 <body>
 
+<!-- ✅ Side Admin Button -->
+<div class="admin-btn" onclick="showAdmin()">Admin</div>
+
 <!-- Slide 1 -->
 <div class="container" id="slide1">
   <h2>Instructions</h2>
   <p>• Each question has 30 seconds</p>
-  <p>• No cheating allowed</p>
+  <p>• Read each question carefully before answering</p>
+  <p>• Once selected, answer cannot be changed</p>
+  <p>• Test will move automatically after time ends</p>
+  <p>• Make sure you have stable internet/device</p>
   <button onclick="nextSlide(2)">Next</button>
-  <button onclick="showAdmin()">Admin</button>
 </div>
 
 <!-- Slide 2 -->
@@ -180,17 +189,17 @@ function nextSlide(n){
   document.getElementById("slide"+n).style.display="block";
 }
 
-// Verify
+// ✅ FIXED VERIFY (main bug)
 function verifyUser(){
-  let n=name.value.trim();
-  let e=email.value.trim();
+  let n = document.getElementById("name").value.trim();
+  let e = document.getElementById("email").value.trim();
 
-  if(!n || !e.includes("@")){
-    alert("Enter valid details");
+  if(n === "" || e === "" || !e.includes("@")){
+    alert("Please enter valid Name and Email");
     return;
   }
 
-  student={name:n,email:e};
+  student = {name:n, email:e};
   nextSlide(3);
 }
 
@@ -223,7 +232,6 @@ function loadQ(){
   });
   options.innerHTML=html;
 
-  // progress bar
   progressBar.style.width=((qIndex+1)/questions.length)*100+"%";
 
   let t=30;
@@ -260,7 +268,7 @@ function selectAns(i,el){
   setTimeout(nextQ,1000);
 }
 
-// Next Question
+// Next
 function nextQ(){
   qIndex++;
   if(qIndex<questions.length){
@@ -300,7 +308,7 @@ function showResult(){
   loadLeaderboard();
 }
 
-// Save Data
+// Save
 function saveData(){
   let data=JSON.parse(localStorage.getItem("students")||"[]");
 
@@ -320,10 +328,8 @@ function loadLeaderboard(){
 
   data.sort((a,b)=>b.score-a.score);
 
-  let top=data.slice(0,5);
-
   let html="";
-  top.forEach((s,i)=>{
+  data.slice(0,5).forEach((s,i)=>{
     html+=`<p>${i+1}. ${s.name} - ${s.score}</p>`;
   });
 
