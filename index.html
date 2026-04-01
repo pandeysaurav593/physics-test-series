@@ -1,378 +1,165 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
-  <title>Physics Test Pro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam System Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body{
-      font-family:Arial;
-      background:linear-gradient(135deg,#0f172a,#1e293b);
-      color:white;
-      margin:0;
-    }
-
-    .container{
-      max-width:800px;
-      margin:30px auto;
-      padding:25px;
-      background:#1e293b;
-      border-radius:15px;
-      box-shadow:0 0 20px rgba(0,0,0,0.5);
-      display:none;
-    }
-
-    #slide1{display:block;}
-
-    input,button,textarea{
-      width:100%;
-      padding:12px;
-      margin:10px 0;
-      border:none;
-      border-radius:8px;
-      font-size:16px;
-    }
-
-    button{
-      background:#38bdf8;
-      color:black;
-      font-weight:bold;
-      cursor:pointer;
-    }
-
-    .option{
-      background:#334155;
-      padding:12px;
-      margin:6px 0;
-      border-radius:8px;
-      cursor:pointer;
-    }
-
-    .correct{background:#16a34a !important;}
-    .wrong{background:#dc2626 !important;}
-
-    .tracker{
-      display:flex;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
-    .box{
-      width:35px;height:35px;margin:4px;
-      display:flex;align-items:center;justify-content:center;
-      border-radius:6px;background:#475569;
-    }
-
-    .box.correct{background:#16a34a;}
-    .box.wrong{background:#dc2626;}
-
-    .progress{
-      background:#334155;
-      height:10px;
-      border-radius:10px;
-      margin-bottom:10px;
-    }
-
-    #progressBar{
-      height:10px;
-      background:#38bdf8;
-      width:0%;
-      border-radius:10px;
-    }
-
-    /* ✅ Admin button side */
-    .admin-btn{
-      position:fixed;
-      right:10px;
-      top:10px;
-      width:auto;
-      padding:10px 15px;
-      background:#f59e0b;
-      color:black;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:bold;
-    }
-
-    table{
-      background:white;
-      color:black;
-      border-collapse:collapse;
-    }
-
-    th,td{padding:8px;}
-  </style>
+<style>
+body{font-family:Arial;background:#0f172a;color:white;margin:0;}
+.container{max-width:700px;margin:30px auto;padding:20px;background:#1e293b;border-radius:10px;display:none;}
+#slide1{display:block;}
+input,button,textarea{width:100%;padding:10px;margin:8px 0;border:none;border-radius:5px;}
+button{background:#38bdf8;cursor:pointer;}
+.admin-btn{position:fixed;right:10px;top:10px;background:#f59e0b;padding:10px;border-radius:5px;}
+table{background:white;color:black;width:100%;}
+</style>
 </head>
 
 <body>
 
-<!-- ✅ Side Admin Button -->
 <div class="admin-btn" onclick="showAdmin()">Admin</div>
 
-<!-- Slide 1 -->
 <div class="container" id="slide1">
-  <h2>Instructions</h2>
-  <p>• Each question has 30 seconds</p>
-  <p>• Read each question carefully before answering</p>
-  <p>• Once selected, answer cannot be changed</p>
-  <p>• Test will move automatically after time ends</p>
-  <p>• Make sure you have stable internet/device</p>
-  <button onclick="nextSlide(2)">Next</button>
+<h2>Instructions</h2>
+<p>• Read questions carefully</p>
+<p>• Each test is timed</p>
+<p>• Answers cannot be changed</p>
+<p>• Complete all chapters</p>
+<p>• Submit feedback after test</p>
+<button onclick="nextSlide(2)">Next</button>
 </div>
 
-<!-- Slide 2 -->
 <div class="container" id="slide2">
-  <h2>Enter Details</h2>
-  <input id="name" placeholder="Name">
-  <input id="email" placeholder="Email">
-  <button onclick="verifyUser()">Verify</button>
+<h2>Enter Details</h2>
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
+<button onclick="login()">Continue</button>
 </div>
 
-<!-- Slide 3 -->
 <div class="container" id="slide3">
-  <h2>Ready?</h2>
-  <button onclick="startTest()">Start Test</button>
+<h2>Select Chapter</h2>
+<button onclick="openChap('chapter1.html')">Chapter 1</button>
+<button id="c2" disabled onclick="openChap('chapter2.html')">Chapter 2 🔒</button>
+<button id="c3" disabled onclick="openChap('chapter3.html')">Chapter 3 🔒</button>
 </div>
 
-<!-- Slide 4 -->
 <div class="container" id="slide4">
-  <div class="progress"><div id="progressBar"></div></div>
-  <h3 id="qText"></h3>
-  <div id="options"></div>
-  <p>Time: <span id="timer"></span></p>
-  <div class="tracker" id="tracker"></div>
+<h2>Feedback</h2>
+<textarea id="feedback"></textarea>
+<button onclick="saveFeedback()">Submit</button>
 </div>
 
-<!-- Slide 5 -->
-<div class="container" id="slide5">
-  <h2>Feedback</h2>
-  <textarea id="feedback" placeholder="Your feedback"></textarea>
-  <button onclick="submitFeedback()">Submit</button>
-</div>
-
-<!-- Slide 6 -->
-<div class="container" id="slide6">
-  <h2 id="score"></h2>
-  <div id="review"></div>
-  <h3>Leaderboard</h3>
-  <div id="leaderboard"></div>
-  <button onclick="location.reload()">Restart</button>
-</div>
-
-<!-- Admin -->
 <div class="container" id="admin">
-  <h2>Admin Panel</h2>
-  <p>Total Students: <span id="total"></span></p>
-  <table border="1" width="100%">
-    <tr>
-      <th>Name</th><th>Email</th><th>Score</th><th>Feedback</th>
-    </tr>
-    <tbody id="data"></tbody>
-  </table>
+<h2>Admin Panel</h2>
+<p>Total: <span id="total"></span></p>
+<table border="1">
+<tr><th>Rank</th><th>Name</th><th>Email</th><th>Total</th></tr>
+<tbody id="data"></tbody>
+</table>
 </div>
 
 <script>
 
-let qIndex=0, score=0, answers=[], timerInt;
 let student={};
 
-const questions=[
-{q:"SI unit of charge?",o:["Newton","Joule","Coulomb","Watt"],a:2},
-{q:"Electron charge?",o:["Positive","Negative","Neutral","Zero"],a:1},
-{q:"Proton charge?",o:["Negative","Positive","Neutral","Varies"],a:1},
-{q:"Like charges?",o:["Attract","Repel","None","Neutral"],a:1}
-];
-
-// Slide control
 function nextSlide(n){
-  document.querySelectorAll(".container").forEach(d=>d.style.display="none");
-  document.getElementById("slide"+n).style.display="block";
+document.querySelectorAll(".container").forEach(d=>d.style.display="none");
+document.getElementById("slide"+n).style.display="block";
 }
 
-// ✅ FIXED VERIFY (main bug)
-function verifyUser(){
-  let n = document.getElementById("name").value.trim();
-  let e = document.getElementById("email").value.trim();
+function login(){
+let n=name.value.trim();
+let e=email.value.trim();
 
-  if(n === "" || e === "" || !e.includes("@")){
-    alert("Please enter valid Name and Email");
-    return;
-  }
-
-  student = {name:n, email:e};
-  nextSlide(3);
+if(!n || !e.includes("@")){
+alert("Invalid");
+return;
 }
 
-// Start Test
-function startTest(){
-  qIndex=0; score=0; answers=[];
-  nextSlide(4);
-  createTracker();
-  loadQ();
+student={name:n,email:e};
+localStorage.setItem("currentStudent",JSON.stringify(student));
+
+nextSlide(3);
+unlock();
 }
 
-// Tracker
-function createTracker(){
-  tracker.innerHTML="";
-  questions.forEach((_,i)=>{
-    tracker.innerHTML+=`<div class="box" id="box${i}">${i+1}</div>`;
-  });
+function unlock(){
+let data=JSON.parse(localStorage.getItem("students")||"[]");
+let u=data.find(d=>d.email===student.email);
+
+if(!u) return;
+
+if(u.chapter1){
+c2.disabled=false;
+c2.innerText="Chapter 2";
 }
 
-// Load Question
-function loadQ(){
-  clearInterval(timerInt);
-
-  let q=questions[qIndex];
-  qText.innerText=`Q${qIndex+1}: ${q.q}`;
-
-  let html="";
-  q.o.forEach((opt,i)=>{
-    html+=`<div class="option" onclick="selectAns(${i},this)">${opt}</div>`;
-  });
-  options.innerHTML=html;
-
-  progressBar.style.width=((qIndex+1)/questions.length)*100+"%";
-
-  let t=30;
-  timer.innerText=t;
-
-  timerInt=setInterval(()=>{
-    t--;
-    timer.innerText=t;
-    if(t<=0){
-      clearInterval(timerInt);
-      nextQ();
-    }
-  },1000);
+if(u.chapter2){
+c3.disabled=false;
+c3.innerText="Chapter 3";
+}
 }
 
-// Select Answer
-function selectAns(i,el){
-  answers[qIndex]=i;
-
-  let correct=questions[qIndex].a;
-
-  document.querySelectorAll(".option").forEach(btn=>btn.onclick=null);
-
-  if(i===correct){
-    el.classList.add("correct");
-    document.getElementById("box"+qIndex).classList.add("correct");
-    score++;
-  } else {
-    el.classList.add("wrong");
-    document.getElementById("box"+qIndex).classList.add("wrong");
-    document.querySelectorAll(".option")[correct].classList.add("correct");
-  }
-
-  setTimeout(nextQ,1000);
+function openChap(p){
+window.location.href=p;
 }
 
-// Next
-function nextQ(){
-  qIndex++;
-  if(qIndex<questions.length){
-    loadQ();
-  } else {
-    nextSlide(5);
-  }
+window.onload=function(){
+if(location.hash=="#feedback"){
+nextSlide(4);
+}
+};
+
+function saveFeedback(){
+
+let res=JSON.parse(localStorage.getItem("students")||"[]");
+let temp=JSON.parse(localStorage.getItem("currentStudent"));
+
+let index=res.findIndex(d=>d.email===temp.email);
+
+if(index>=0){
+res[index].feedback=feedback.value;
 }
 
-// Feedback
-function submitFeedback(){
-  student.feedback=feedback.value;
-  nextSlide(6);
-  showResult();
+localStorage.setItem("students",JSON.stringify(res));
+
+alert("Saved!");
+location.reload();
 }
 
-// Result
-function showResult(){
-  let percent=(score/questions.length)*100;
-
-  document.getElementById("score").innerText=
-    `Score: ${score}/${questions.length} (${percent.toFixed(1)}%)`;
-
-  let reviewHTML="";
-  questions.forEach((q,i)=>{
-    reviewHTML+=`
-      <p><b>Q${i+1}:</b> ${q.q}</p>
-      <p>Your Answer: ${q.o[answers[i]]||"Not Answered"}</p>
-      <p>Correct: ${q.o[q.a]}</p>
-      <hr>
-    `;
-  });
-
-  review.innerHTML=reviewHTML;
-
-  saveData();
-  loadLeaderboard();
-}
-
-// Save
-function saveData(){
-  let data=JSON.parse(localStorage.getItem("students")||"[]");
-
-  let index=data.findIndex(d=>d.email===student.email);
-
-  let full={...student,score};
-
-  if(index>=0) data[index]=full;
-  else data.push(full);
-
-  localStorage.setItem("students",JSON.stringify(data));
-}
-
-// Leaderboard
-function loadLeaderboard(){
-  let data=JSON.parse(localStorage.getItem("students")||"[]");
-
-  data.sort((a,b)=>b.score-a.score);
-
-  let html="";
-  data.slice(0,5).forEach((s,i)=>{
-    html+=`<p>${i+1}. ${s.name} - ${s.score}</p>`;
-  });
-
-  leaderboard.innerHTML=html;
-}
-
-// Admin
 function showAdmin(){
-  let pass=prompt("Enter Admin Password");
+let pass=prompt("Password");
 
-  if(pass!=="admin123"){
-    alert("Wrong Password");
-    return;
-  }
-
-  document.querySelectorAll(".container").forEach(d=>d.style.display="none");
-  admin.style.display="block";
-
-  loadAdmin();
+if(pass!=="admin123"){
+alert("Wrong");
+return;
 }
 
-// Load Admin
+document.querySelectorAll(".container").forEach(d=>d.style.display="none");
+admin.style.display="block";
+
+loadAdmin();
+}
+
 function loadAdmin(){
-  let dataArr=JSON.parse(localStorage.getItem("students")||"[]");
+let arr=JSON.parse(localStorage.getItem("students")||"[]");
 
-  total.innerText=dataArr.length;
+arr.forEach(d=>{
+d.total=(d.chapter1||0)+(d.chapter2||0)+(d.chapter3||0);
+});
 
-  let html="";
-  dataArr.forEach(d=>{
-    html+=`
-      <tr>
-        <td>${d.name}</td>
-        <td>${d.email}</td>
-        <td>${d.score}</td>
-        <td>${d.feedback||"-"}</td>
-      </tr>
-    `;
-  });
+arr.sort((a,b)=>b.total-a.total);
 
-  data.innerHTML=html;
+total.innerText=arr.length;
+
+let html="";
+arr.forEach((d,i)=>{
+html+=`<tr><td>${i+1}</td><td>${d.name}</td><td>${d.email}</td><td>${d.total}</td></tr>`;
+});
+
+data.innerHTML=html;
 }
 
 </script>
-
 </body>
 </html>
