@@ -11,19 +11,13 @@
     .menu a:hover{color:#38bdf8;}
     .container{max-width:800px;margin:30px auto;padding:25px;border-radius:12px;background:#1e293b;display:none;}
     input,textarea,select{padding:12px;width:95%;margin:10px 0;border-radius:6px;border:none;}
-    .btn{padding:12px 20px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;width:100%;}
+    .btn{padding:12px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;width:100%;}
     .btn:hover{background:#0ea5e9;}
-    .question-container{margin-top:20px;}
     .option-btn{display:block;width:100%;padding:12px;margin:8px 0;border:none;border-radius:6px;background:#334155;color:white;cursor:pointer;text-align:left;}
     .option-btn:hover{background:#0ea5e9;}
-    .timer{text-align:right;font-weight:bold;color:#38bdf8;margin-top:10px;}
-    .result{text-align:center;font-size:18px;margin-top:20px;}
-    table{width:100%;border-collapse:collapse;margin-top:15px;}
-    th,td{padding:10px;border:1px solid #38bdf8;text-align:left;}
-    th{background:#0ea5e9;}
+    .timer{text-align:right;font-weight:bold;color:#38bdf8;}
     .footer{text-align:center;padding:15px;background:#020617;margin-top:30px;}
     h1,h2,h3{color:#38bdf8;}
-    p{line-height:1.5;}
   </style>
 </head>
 <body>
@@ -35,217 +29,182 @@
   </div>
 </div>
 
-<!-- Slide 1: Home / Instructions -->
+<!-- Home -->
 <div class="container" id="home">
   <h1>Welcome to Physics Test Series</h1>
-  <h3>Test Instructions</h3>
   <ol>
-    <li>Each question has 30 seconds to answer.</li>
-    <li>Once a question is answered, next question appears automatically.</li>
-    <li>After the last question, you will submit your feedback.</li>
-    <li>Score and per-question review will be shown at the end.</li>
-    <li>Only one attempt per email is allowed.</li>
+    <li>30 sec per question</li>
+    <li>Auto next question</li>
+    <li>One attempt per email</li>
   </ol>
-  <button class="btn" onclick="showSlide('info')">Next</button>
+  <button class="btn" onclick="showSlide('info')">Start</button>
 </div>
 
-<!-- Slide 2: Student Info -->
+<!-- Info -->
 <div class="container" id="info">
-  <h2>Enter Your Details</h2>
-  <input type="text" id="studentName" placeholder="Enter Name">
-  <input type="email" id="studentEmail" placeholder="Enter Valid Email">
+  <h2>Enter Details</h2>
+  <input id="studentName" placeholder="Name">
+  <input id="studentEmail" placeholder="Email">
   <button class="btn" onclick="startTest()">Start Test</button>
 </div>
 
-<!-- Slide 3: Test Slide -->
+<!-- Test -->
 <div class="container" id="test">
-  <div class="timer">Time Left: <span id="timer">30</span> sec</div>
-  <div class="question-container" id="question-container"></div>
+  <div class="timer">Time: <span id="timer">30</span>s</div>
+  <p>Question <span id="qNum"></span> / 10</p>
+  <div id="question-container"></div>
 </div>
 
-<!-- Slide 4: Feedback Slide -->
+<!-- Feedback -->
 <div class="container" id="feedback">
-  <h2>Give your Feedback</h2>
-  <label for="rating">Rating (1-5):</label>
+  <h2>Feedback</h2>
   <select id="rating">
-    <option value="">Select</option>
-    <option value="1">1 - Poor</option>
-    <option value="2">2 - Fair</option>
-    <option value="3">3 - Good</option>
-    <option value="4">4 - Very Good</option>
-    <option value="5">5 - Excellent</option>
+    <option value="">Rating</option>
+    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
   </select>
-  <textarea id="feedbackText" placeholder="Write your feedback..." rows="3"></textarea>
-  <button class="btn" onclick="submitFeedback()">Submit Feedback</button>
+  <textarea id="feedbackText" placeholder="Feedback"></textarea>
+  <button class="btn" onclick="submitFeedback()">Submit</button>
 </div>
 
-<!-- Slide 5: Result Slide -->
+<!-- Result -->
 <div class="container" id="result">
-  <h2>Test Completed!</h2>
+  <h2>Result</h2>
   <p id="score"></p>
   <div id="review"></div>
-  <button class="btn" onclick="showSlide('home')">Go to Home</button>
+  <button class="btn" onclick="showSlide('home')">Home</button>
 </div>
 
-<!-- Slide 6: Admin Slide -->
+<!-- Admin -->
 <div class="container" id="adminSlide">
-  <h2>Admin Dashboard</h2>
-  <p>Total Students: <span id="totalStudents">0</span></p>
-  <button class="btn" onclick="resetAllData()">Reset All Data</button>
-  <h3>Student Results</h3>
-  <table>
-    <thead><tr><th>Name</th><th>Email</th><th>Score</th><th>Feedback</th></tr></thead>
+  <h2>Admin</h2>
+  <p>Total: <span id="totalStudents"></span></p>
+  <button class="btn" onclick="resetAllData()">Reset Data</button>
+  <table border="1" width="100%">
+    <tr><th>Name</th><th>Email</th><th>Score</th></tr>
     <tbody id="adminTable"></tbody>
   </table>
 </div>
 
-<div class="footer">© 2026 Physics Test Series</div>
+<div class="footer">© 2026</div>
 
 <script>
-let student={}, currentQ=0, answers=[], timerInterval, timeLeft=30;
+let student={}, currentQ=0, answers=[], timerInterval;
 
-// Questions
 const questions=[
-{q:"Electric charge ka SI unit kya hai?", options:["Newton","Joule","Coulomb","Watt"], answer:2},
-{q:"Electron par charge hota hai:", options:["Positive","Negative","Neutral","Zero"], answer:1},
-{q:"Proton ka charge hota hai:", options:["Negative","Positive","Neutral","Varies"], answer:1},
-{q:"Coulomb’s Law kis relation ko batata hai?", options:["Mass aur Force","Charge aur Force","Energy aur Power","Voltage aur Current"], answer:1},
-{q:"Force depend karta hai:", options:["Distance","Charge","Medium","All of these"], answer:3},
-{q:"Like charges:", options:["Attract","Repel","Neutral","None"], answer:1},
-{q:"Unlike charges:", options:["Repel","Attract","Neutral","None"], answer:1},
-{q:"Electric field unit:", options:["N/C","Volt","Joule","Ohm"], answer:0},
-{q:"Field direction:", options:["Negative ki taraf","Positive se negative","Random","Circular"], answer:1},
-{q:"Coulomb constant:", options:["9×10^9","3×10^8","6.67×10^-11","1.6×10^-19"], answer:0}
+{q:"SI unit of charge?", options:["Newton","Joule","Coulomb","Watt"], answer:2},
+{q:"Electron charge?", options:["Positive","Negative","Neutral","Zero"], answer:1},
+{q:"Proton charge?", options:["Negative","Positive","Neutral","Varies"], answer:1},
+{q:"Coulomb law relates?", options:["Mass-Force","Charge-Force","Energy-Power","Voltage-Current"], answer:1},
+{q:"Force depends?", options:["Distance","Charge","Medium","All"], answer:3},
+{q:"Like charges?", options:["Attract","Repel","Neutral","None"], answer:1},
+{q:"Unlike charges?", options:["Repel","Attract","Neutral","None"], answer:1},
+{q:"Electric field unit?", options:["N/C","Volt","Joule","Ohm"], answer:0},
+{q:"Field direction?", options:["Negative","Positive→Negative","Random","Circular"], answer:1},
+{q:"Coulomb constant?", options:["9×10^9","3×10^8","6.67×10^-11","1.6×10^-19"], answer:0}
 ];
 
-// Show slide
 function showSlide(id){
   ["home","info","test","feedback","result","adminSlide"].forEach(s=>document.getElementById(s).style.display="none");
   document.getElementById(id).style.display="block";
 }
 
-// Email validation
-function isValidEmail(email){
-  const re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-}
-
-// Start test from info slide
 function startTest(){
-  const name=document.getElementById("studentName").value.trim();
-  const email=document.getElementById("studentEmail").value.trim();
-  if(!name||!email){alert("Enter Name and Email"); return;}
-  if(!isValidEmail(email)){alert("Enter a valid Email"); return;}
-  
+  let name=studentName.value.trim();
+  let email=studentEmail.value.trim();
+  if(!name||!email){alert("Enter details"); return;}
+
   let data=JSON.parse(localStorage.getItem("students")||"[]");
-  if(data.some(d=>d.email.toLowerCase()===email.toLowerCase())){
-    alert("You have already attempted the test!");
-    return;
-  }
+  if(data.some(d=>d.email===email)){alert("Already attempted"); return;}
 
   student={name,email};
   currentQ=0; answers=[];
-  showSlide('test');
+  showSlide("test");
   showQuestion();
 }
 
-// Show question
 function showQuestion(){
   clearInterval(timerInterval);
-  timeLeft=30;
-  document.getElementById("timer").innerText=timeLeft;
-  const q=questions[currentQ];
-  const container=document.getElementById("question-container");
-  container.innerHTML=`<h3>Q${currentQ+1}: ${q.q}</h3>`;
+  let time=30;
+  timer.innerText=time;
+  qNum.innerText=currentQ+1;
+
+  let q=questions[currentQ];
+  let html=`<h3>${q.q}</h3>`;
   q.options.forEach((opt,i)=>{
-    const btn=document.createElement("button");
-    btn.className="option-btn";
-    btn.innerText=opt;
-    btn.onclick=()=>selectAnswer(i);
-    container.appendChild(btn);
+    html+=`<button class="option-btn" onclick="selectAnswer(${i})">${opt}</button>`;
   });
+  document.getElementById("question-container").innerHTML=html;
+
   timerInterval=setInterval(()=>{
-    timeLeft--;
-    document.getElementById("timer").innerText=timeLeft;
-    if(timeLeft<=0){
+    time--;
+    timer.innerText=time;
+    if(time<=0){
       clearInterval(timerInterval);
       selectAnswer(null);
     }
   },1000);
 }
 
-// Select answer
 function selectAnswer(i){
+  if(answers[currentQ]!==undefined) return;
   answers[currentQ]=i;
   currentQ++;
   if(currentQ<questions.length){
     showQuestion();
-  }else{
-    showSlide('feedback');
+  } else {
+    showSlide("feedback");
   }
 }
 
-// Submit feedback
 function submitFeedback(){
-  const rating=document.getElementById("rating").value;
-  const text=document.getElementById("feedbackText").value.trim();
+  let rating=document.getElementById("rating").value;
   if(!rating){alert("Select rating"); return;}
-  
+
   let score=0;
   questions.forEach((q,i)=>{if(answers[i]===q.answer) score++;});
-  let percent=(score/questions.length*100).toFixed(2);
+  let percent=(score/questions.length*100).toFixed(1);
 
-  let resultData={name:student.name,email:student.email,score,percent,rating,text};
   let data=JSON.parse(localStorage.getItem("students")||"[]");
-  data.push(resultData);
+  data.push({name:student.name,email:student.email,score,percent});
   localStorage.setItem("students",JSON.stringify(data));
 
-  showResult(score,percent);
+  showSlide("result");
+  scoreDisplay(score,percent);
 }
 
-// Show result
-function showResult(score,percent){
-  showSlide('result');
-  document.getElementById("score").innerHTML=`Score: ${score}/${questions.length} | Percentage: ${percent}%`;
-  let reviewHtml="";
+function scoreDisplay(score,percent){
+  document.getElementById("score").innerText=`${score}/10 (${percent}%)`;
+  let review="";
   questions.forEach((q,i)=>{
-    let studentAns=answers[i]!==null?q.options[answers[i]]:"No Answer";
-    reviewHtml+=`<p>Q${i+1}: Your Answer: ${studentAns} | Correct: ${q.options[q.answer]}</p>`;
+    review+=`<p>Q${i+1}: ${q.options[q.answer]}</p>`;
   });
-  document.getElementById("review").innerHTML=reviewHtml;
+  document.getElementById("review").innerHTML=review;
 }
 
-// Admin dashboard
 function showAdmin(){
-  let pass=prompt("Enter Admin Password:");
-  if(pass!=="PhysicsAdmin123"){alert("Access Denied"); return;}
+  let pass=prompt("Password:");
+  if(pass!=="1234"){alert("Wrong"); return;}
   showSlide("adminSlide");
-  loadAdminData();
+  loadAdmin();
 }
 
-function loadAdminData(){
-  const table=document.getElementById("adminTable");
-  table.innerHTML="";
-  const data=JSON.parse(localStorage.getItem("students")||"[]");
-  document.getElementById("totalStudents").innerText=data.length;
+function loadAdmin(){
+  let data=JSON.parse(localStorage.getItem("students")||"[]");
+  totalStudents.innerText=data.length;
+  let html="";
   data.forEach(d=>{
-    const row=document.createElement("tr");
-    row.innerHTML=`<td>${d.name}</td><td>${d.email}</td><td>${d.score}/${questions.length} (${d.percent}%)</td><td>Rating: ${d.rating} | Comment: ${d.text}</td>`;
-    table.appendChild(row);
+    html+=`<tr><td>${d.name}</td><td>${d.email}</td><td>${d.score}</td></tr>`;
   });
+  adminTable.innerHTML=html;
 }
 
-// Reset all data
 function resetAllData(){
-  if(confirm("Are you sure you want to delete all student data?")){
-    localStorage.removeItem("students");
-    loadAdminData();
-    alert("All data cleared!");
-  }
+  localStorage.removeItem("students");
+  loadAdmin();
 }
 
-// Load home
-showSlide('home');
+showSlide("home");
 </script>
+
 </body>
 </html>
