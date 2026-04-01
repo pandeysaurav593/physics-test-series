@@ -2,44 +2,72 @@
 <html>
 <body>
 
-<h2>Physics Chapter 1 Test</h2>
-
+<h2>Chapter 1 Test</h2>
 <h3 id="q"></h3>
 <div id="opt"></div>
-<p>Score: <span id="s">0</span></p>
+<p>Time: <span id="t">30</span></p>
 
 <script>
 
-let i=0,score=0;
+let i=0,score=0,timer;
+let answers=[];
 
-const questions = [
-{q:"SI unit of electric charge is?",o:["Newton","Joule","Coulomb","Watt"],a:2},
-{q:"Charge on an electron is:",o:["+1.6×10⁻¹⁹ C","-1.6×10⁻¹⁹ C","0","+1 C"],a:1},
-{q:"Like charges:",o:["Attract","Repel","No force","Disappear"],a:1},
-{q:"Coulomb’s law is valid for:",o:["Only large charges","Point charges","Moving charges","Neutral bodies"],a:1},
-{q:"Unit of electric field is:",o:["N/C","J/C","Volt","Ampere"],a:0},
-{q:"Electric field direction is:",o:["Direction of positive charge force","Negative charge force","Random","Circular"],a:0},
-{q:"Permittivity of free space is:",o:["8.85×10⁻¹²","9×10⁹","1.6×10⁻¹⁹","3×10⁸"],a:0},
-{q:"Force between charges depends on:",o:["Mass","Distance","Temperature","Color"],a:1},
-{q:"Electric field lines start from:",o:["Negative charge","Positive charge","Neutral point","Anywhere"],a:1},
-{q:"Electric dipole consists of:",o:["Two positive charges","Two negative charges","One positive & one negative","Neutral body"],a:2}
+let student=JSON.parse(localStorage.getItem("currentStudent"));
+
+const questions=[
+{q:"SI unit of charge?",o:["Newton","Joule","Coulomb","Watt"],a:2},
+{q:"Electron charge?",o:["Positive","Negative","Neutral","Zero"],a:1},
+{q:"Like charges?",o:["Attract","Repel","None","Neutral"],a:1},
+{q:"Electric field unit?",o:["N/C","J","Volt","Amp"],a:0},
+{q:"Dipole means?",o:["++","--","+-","0"],a:2}
 ];
 
 function load(){
-let q=questions[i];
-document.getElementById("q").innerText=q.q;
+
+let qn=questions[i];
+q.innerText=qn.q;
 
 let html="";
-q.o.forEach((op,ind)=>{
+qn.o.forEach((op,ind)=>{
 html+=`<button onclick="ans(${ind})">${op}</button><br>`;
 });
 opt.innerHTML=html;
+
+startTimer();
+}
+
+function startTimer(){
+let time=30;
+t.innerText=time;
+
+clearInterval(timer);
+timer=setInterval(()=>{
+time--;
+t.innerText=time;
+
+if(time==0){
+clearInterval(timer);
+next();
+}
+},1000);
 }
 
 function ans(ind){
-if(ind===questions[i].a) score++;
-s.innerText=score;
+clearInterval(timer);
 
+let correct=questions[i].o[questions[i].a];
+
+answers.push({
+user:questions[i].o[ind],
+correct:correct
+});
+
+if(ind===questions[i].a) score++;
+
+next();
+}
+
+function next(){
 i++;
 if(i<questions.length){
 load();
@@ -50,21 +78,14 @@ finish();
 
 function finish(){
 
-let student=JSON.parse(localStorage.getItem("currentStudent"));
+let result={
+name:student.name,
+email:student.email,
+score:score,
+answers:answers
+};
 
-let data=JSON.parse(localStorage.getItem("students")||"[]");
-
-let index=data.findIndex(d=>d.email===student.email);
-
-if(index>=0){
-data[index].chapter1=score;
-}else{
-data.push({...student,chapter1:score});
-}
-
-localStorage.setItem("students",JSON.stringify(data));
-
-alert("Test Finished!");
+localStorage.setItem("testResult",JSON.stringify(result));
 
 window.location.href="index.html#feedback";
 }
