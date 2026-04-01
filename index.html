@@ -3,207 +3,193 @@
 <head>
   <title>Physics Test Series</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    body{margin:0;font-family:'Segoe UI',Arial;background:#0f172a;color:white;}
-    .navbar{display:flex;justify-content:space-between;padding:15px 25px;background:#020617;}
-    .logo{font-size:22px;font-weight:bold;color:#38bdf8;cursor:pointer;}
-    .menu a{color:white;margin-left:20px;text-decoration:none;cursor:pointer;}
-    .menu a:hover{color:#38bdf8;}
-    .container{max-width:800px;margin:30px auto;padding:25px;border-radius:12px;background:#1e293b;display:none;}
-    input,textarea,select{padding:12px;width:95%;margin:10px 0;border-radius:6px;border:none;}
-    .btn{padding:12px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;width:100%;}
-    .btn:hover{background:#0ea5e9;}
-    .option-btn{display:block;width:100%;padding:12px;margin:8px 0;border:none;border-radius:6px;background:#334155;color:white;cursor:pointer;text-align:left;}
-    .option-btn:hover{background:#0ea5e9;}
-    .timer{text-align:right;font-weight:bold;color:#38bdf8;}
-    .footer{text-align:center;padding:15px;background:#020617;margin-top:30px;}
-    h1,h2,h3{color:#38bdf8;}
+    body{font-family:Arial;background:#0f172a;color:white;margin:0;}
+    .container{max-width:800px;margin:20px auto;padding:20px;background:#1e293b;border-radius:10px;}
+    input,button,select{padding:10px;margin:8px 0;width:100%;border:none;border-radius:5px;}
+    button{background:#38bdf8;cursor:pointer;}
+    .option{background:#334155;margin:5px 0;padding:10px;border-radius:5px;cursor:pointer;}
+    .correct{background:#16a34a !important;}
+    .wrong{background:#dc2626 !important;}
+
+    .tracker{display:flex;flex-wrap:wrap;margin-top:10px;}
+    .box{
+      width:35px;height:35px;margin:4px;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:5px;background:#475569;
+    }
+    .box.correct{background:#16a34a;}
+    .box.wrong{background:#dc2626;}
   </style>
 </head>
 <body>
 
-<div class="navbar">
-  <div class="logo" onclick="showSlide('home')">Physics Test Series</div>
-  <div class="menu">
-    <a onclick="showAdmin()">Admin</a>
-  </div>
-</div>
-
-<!-- Home -->
 <div class="container" id="home">
-  <h1>Welcome to Physics Test Series</h1>
-  <ol>
-    <li>30 sec per question</li>
-    <li>Auto next question</li>
-    <li>One attempt per email</li>
-  </ol>
-  <button class="btn" onclick="showSlide('info')">Start</button>
+  <h2>Physics Test</h2>
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <button onclick="startTest()">Start Test</button>
+  <button onclick="showAdmin()">Admin</button>
 </div>
 
-<!-- Info -->
-<div class="container" id="info">
-  <h2>Enter Details</h2>
-  <input id="studentName" placeholder="Name">
-  <input id="studentEmail" placeholder="Email">
-  <button class="btn" onclick="startTest()">Start Test</button>
+<div class="container" id="test" style="display:none;">
+  <h3 id="qText"></h3>
+  <div id="options"></div>
+  <p>Time: <span id="timer">30</span></p>
+
+  <!-- Tracker -->
+  <div class="tracker" id="tracker"></div>
 </div>
 
-<!-- Test -->
-<div class="container" id="test">
-  <div class="timer">Time: <span id="timer">30</span>s</div>
-  <p>Question <span id="qNum"></span> / 10</p>
-  <div id="question-container"></div>
+<div class="container" id="result" style="display:none;">
+  <h2 id="score"></h2>
+  <button onclick="location.reload()">Restart</button>
 </div>
 
-<!-- Feedback -->
-<div class="container" id="feedback">
-  <h2>Feedback</h2>
-  <select id="rating">
-    <option value="">Rating</option>
-    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-  </select>
-  <textarea id="feedbackText" placeholder="Feedback"></textarea>
-  <button class="btn" onclick="submitFeedback()">Submit</button>
-</div>
-
-<!-- Result -->
-<div class="container" id="result">
-  <h2>Result</h2>
-  <p id="score"></p>
-  <div id="review"></div>
-  <button class="btn" onclick="showSlide('home')">Home</button>
-</div>
-
-<!-- Admin -->
-<div class="container" id="adminSlide">
-  <h2>Admin</h2>
-  <p>Total: <span id="totalStudents"></span></p>
-  <button class="btn" onclick="resetAllData()">Reset Data</button>
+<div class="container" id="admin" style="display:none;">
+  <h2>Admin Panel</h2>
+  <p>Total Students: <span id="total"></span></p>
   <table border="1" width="100%">
     <tr><th>Name</th><th>Email</th><th>Score</th></tr>
-    <tbody id="adminTable"></tbody>
+    <tbody id="data"></tbody>
   </table>
 </div>
 
-<div class="footer">© 2026</div>
-
 <script>
-let student={}, currentQ=0, answers=[], timerInterval;
+let qIndex=0, score=0, answers=[], timerInt;
+let student={};
 
 const questions=[
-{q:"SI unit of charge?", options:["Newton","Joule","Coulomb","Watt"], answer:2},
-{q:"Electron charge?", options:["Positive","Negative","Neutral","Zero"], answer:1},
-{q:"Proton charge?", options:["Negative","Positive","Neutral","Varies"], answer:1},
-{q:"Coulomb law relates?", options:["Mass-Force","Charge-Force","Energy-Power","Voltage-Current"], answer:1},
-{q:"Force depends?", options:["Distance","Charge","Medium","All"], answer:3},
-{q:"Like charges?", options:["Attract","Repel","Neutral","None"], answer:1},
-{q:"Unlike charges?", options:["Repel","Attract","Neutral","None"], answer:1},
-{q:"Electric field unit?", options:["N/C","Volt","Joule","Ohm"], answer:0},
-{q:"Field direction?", options:["Negative","Positive→Negative","Random","Circular"], answer:1},
-{q:"Coulomb constant?", options:["9×10^9","3×10^8","6.67×10^-11","1.6×10^-19"], answer:0}
+{q:"SI unit of charge?",o:["Newton","Joule","Coulomb","Watt"],a:2},
+{q:"Electron charge?",o:["Positive","Negative","Neutral","Zero"],a:1},
+{q:"Proton charge?",o:["Negative","Positive","Neutral","Varies"],a:1},
+{q:"Like charges?",o:["Attract","Repel","None","Neutral"],a:1}
 ];
 
-function showSlide(id){
-  ["home","info","test","feedback","result","adminSlide"].forEach(s=>document.getElementById(s).style.display="none");
-  document.getElementById(id).style.display="block";
-}
-
+// START
 function startTest(){
-  let name=studentName.value.trim();
-  let email=studentEmail.value.trim();
-  if(!name||!email){alert("Enter details"); return;}
+  let n=name.value.trim();
+  let e=email.value.trim();
+  if(!n||!e){alert("Enter details");return;}
 
-  let data=JSON.parse(localStorage.getItem("students")||"[]");
-  if(data.some(d=>d.email===email)){alert("Already attempted"); return;}
+  student={name:n,email:e};
+  qIndex=0;score=0;answers=[];
 
-  student={name,email};
-  currentQ=0; answers=[];
-  showSlide("test");
-  showQuestion();
+  document.getElementById("home").style.display="none";
+  document.getElementById("test").style.display="block";
+
+  createTracker();
+  loadQ();
 }
 
-function showQuestion(){
-  clearInterval(timerInterval);
-  let time=30;
-  timer.innerText=time;
-  qNum.innerText=currentQ+1;
-
-  let q=questions[currentQ];
-  let html=`<h3>${q.q}</h3>`;
-  q.options.forEach((opt,i)=>{
-    html+=`<button class="option-btn" onclick="selectAnswer(${i})">${opt}</button>`;
+// TRACKER BOXES
+function createTracker(){
+  tracker.innerHTML="";
+  questions.forEach((_,i)=>{
+    tracker.innerHTML+=`<div class="box" id="box${i}">${i+1}</div>`;
   });
-  document.getElementById("question-container").innerHTML=html;
+}
 
-  timerInterval=setInterval(()=>{
-    time--;
-    timer.innerText=time;
-    if(time<=0){
-      clearInterval(timerInterval);
-      selectAnswer(null);
+// LOAD QUESTION
+function loadQ(){
+  clearInterval(timerInt);
+  let t=30;
+  timer.innerText=t;
+
+  let q=questions[qIndex];
+  qText.innerText=`Q${qIndex+1}: ${q.q}`;
+
+  let html="";
+  q.o.forEach((opt,i)=>{
+    html+=`<div class="option" onclick="selectAns(${i},this)">${opt}</div>`;
+  });
+  options.innerHTML=html;
+
+  timerInt=setInterval(()=>{
+    t--; timer.innerText=t;
+    if(t<=0){
+      clearInterval(timerInt);
+      nextQ();
     }
   },1000);
 }
 
-function selectAnswer(i){
-  if(answers[currentQ]!==undefined) return;
-  answers[currentQ]=i;
-  currentQ++;
-  if(currentQ<questions.length){
-    showQuestion();
+// SELECT ANSWER
+function selectAns(i,el){
+  let correct=questions[qIndex].a;
+
+  document.querySelectorAll(".option").forEach(btn=>{
+    btn.onclick=null;
+  });
+
+  if(i===correct){
+    el.classList.add("correct");
+    document.getElementById("box"+qIndex).classList.add("correct");
+    score++;
   } else {
-    showSlide("feedback");
+    el.classList.add("wrong");
+    document.getElementById("box"+qIndex).classList.add("wrong");
+
+    // show correct also
+    document.querySelectorAll(".option")[correct].classList.add("correct");
+  }
+
+  setTimeout(nextQ,1000);
+}
+
+// NEXT QUESTION
+function nextQ(){
+  qIndex++;
+  if(qIndex<questions.length){
+    loadQ();
+  } else {
+    finishTest();
   }
 }
 
-function submitFeedback(){
-  let rating=document.getElementById("rating").value;
-  if(!rating){alert("Select rating"); return;}
-
-  let score=0;
-  questions.forEach((q,i)=>{if(answers[i]===q.answer) score++;});
-  let percent=(score/questions.length*100).toFixed(1);
-
+// FINISH
+function finishTest(){
   let data=JSON.parse(localStorage.getItem("students")||"[]");
-  data.push({name:student.name,email:student.email,score,percent});
+
+  // FIX: overwrite same email instead of duplicate
+  let existingIndex=data.findIndex(d=>d.email===student.email);
+  if(existingIndex>=0){
+    data[existingIndex]={...student,score};
+  } else {
+    data.push({...student,score});
+  }
+
   localStorage.setItem("students",JSON.stringify(data));
 
-  showSlide("result");
-  scoreDisplay(score,percent);
+  document.getElementById("test").style.display="none";
+  document.getElementById("result").style.display="block";
+  scoreEl.innerText=`Score: ${score}/${questions.length}`;
 }
 
-function scoreDisplay(score,percent){
-  document.getElementById("score").innerText=`${score}/10 (${percent}%)`;
-  let review="";
-  questions.forEach((q,i)=>{
-    review+=`<p>Q${i+1}: ${q.options[q.answer]}</p>`;
-  });
-  document.getElementById("review").innerHTML=review;
-}
-
+// ADMIN
 function showAdmin(){
-  let pass=prompt("Password:");
-  if(pass!=="1234"){alert("Wrong"); return;}
-  showSlide("adminSlide");
+  let pass=prompt("Enter Password");
+  if(pass!=="1234"){alert("Wrong");return;}
+
+  document.getElementById("home").style.display="none";
+  document.getElementById("admin").style.display="block";
+
   loadAdmin();
 }
 
 function loadAdmin(){
-  let data=JSON.parse(localStorage.getItem("students")||"[]");
-  totalStudents.innerText=data.length;
+  let dataArr=JSON.parse(localStorage.getItem("students")||"[]");
+
+  total.innerText=dataArr.length;
+
   let html="";
-  data.forEach(d=>{
+  dataArr.forEach(d=>{
     html+=`<tr><td>${d.name}</td><td>${d.email}</td><td>${d.score}</td></tr>`;
   });
-  adminTable.innerHTML=html;
-}
 
-function resetAllData(){
-  localStorage.removeItem("students");
-  loadAdmin();
+  document.getElementById("data").innerHTML=html;
 }
-
-showSlide("home");
 </script>
 
 </body>
