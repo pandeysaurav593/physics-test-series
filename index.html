@@ -1,72 +1,121 @@
  <!DOCTYPE html>
 <html>
 <head>
-<title>Exam System Pro</title>
+<title>Exam Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{font-family:Arial;background:#0f172a;color:white;margin:0;}
-.container{max-width:700px;margin:30px auto;padding:20px;background:#1e293b;border-radius:10px;display:none;}
+body{
+  font-family:Arial;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:white;
+  margin:0;
+}
+
+.container{
+  max-width:700px;
+  margin:40px auto;
+  padding:25px;
+  background:#1e293b;
+  border-radius:15px;
+  display:none;
+}
+
 #slide1{display:block;}
-input,button,textarea{width:100%;padding:10px;margin:8px 0;border:none;border-radius:5px;}
-button{background:#38bdf8;cursor:pointer;}
-.admin-btn{position:fixed;right:10px;top:10px;background:#f59e0b;padding:10px;border-radius:5px;}
-table{background:white;color:black;width:100%;}
+
+h1{
+  color:#38bdf8;
+  font-size:32px;
+  text-align:center;
+}
+
+input,button,textarea{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:none;
+  border-radius:8px;
+}
+
+button{
+  background:#38bdf8;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.reset{
+  position:fixed;
+  bottom:10px;
+  right:10px;
+  background:red;
+  color:white;
+}
+
+/* professional feel */
+.card{
+  background:#334155;
+  padding:15px;
+  border-radius:10px;
+  margin-top:10px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="admin-btn" onclick="showAdmin()">Admin</div>
-
+<!-- Slide 1 -->
 <div class="container" id="slide1">
-<h2>Instructions</h2>
-<p>• Read questions carefully</p>
-<p>• Each test is timed</p>
-<p>• Answers cannot be changed</p>
-<p>• Complete all chapters</p>
-<p>• Submit feedback after test</p>
-<button onclick="nextSlide(2)">Next</button>
+  <h1>WELCOME</h1>
+  <div class="card">
+    <p>• Read each question carefully</p>
+    <p>• Each question has 30 seconds</p>
+    <p>• One email can attempt only once</p>
+    <p>• Complete test honestly</p>
+    <p>• Feedback is required after test</p>
+  </div>
+  <button onclick="nextSlide(2)">Start</button>
 </div>
 
+<!-- Slide 2 -->
 <div class="container" id="slide2">
-<h2>Enter Details</h2>
-<input id="name" placeholder="Name">
-<input id="email" placeholder="Email">
-<button onclick="login()">Continue</button>
+  <h2>Login</h2>
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <button onclick="login()">Verify</button>
 </div>
 
+<!-- Slide 3 -->
 <div class="container" id="slide3">
-<h2>Select Chapter</h2>
-<button onclick="openChap('chapter1.html')">Chapter 1</button>
-<button id="c2" disabled onclick="openChap('chapter2.html')">Chapter 2 🔒</button>
-<button id="c3" disabled onclick="openChap('chapter3.html')">Chapter 3 🔒</button>
+  <h2>Select Chapter</h2>
+  <button onclick="startChapter()">Chapter 1</button>
 </div>
 
+<!-- Slide 4 -->
 <div class="container" id="slide4">
-<h2>Feedback</h2>
-<textarea id="feedback"></textarea>
-<button onclick="saveFeedback()">Submit</button>
+  <h2>Feedback</h2>
+  <textarea id="feedback"></textarea>
+  <button onclick="submitData()">Submit</button>
 </div>
 
-<div class="container" id="admin">
-<h2>Admin Panel</h2>
-<p>Total: <span id="total"></span></p>
-<table border="1">
-<tr><th>Rank</th><th>Name</th><th>Email</th><th>Total</th></tr>
-<tbody id="data"></tbody>
-</table>
+<!-- Slide 5 -->
+<div class="container" id="slide5">
+  <h2 id="result"></h2>
+  <div id="review"></div>
 </div>
+
+<button class="reset" onclick="resetData()">Reset Data</button>
 
 <script>
 
 let student={};
 
+// slide
 function nextSlide(n){
 document.querySelectorAll(".container").forEach(d=>d.style.display="none");
 document.getElementById("slide"+n).style.display="block";
 }
 
+// login
 function login(){
 let n=name.value.trim();
 let e=email.value.trim();
@@ -76,88 +125,71 @@ alert("Invalid");
 return;
 }
 
+// check duplicate email
+let data=JSON.parse(localStorage.getItem("students")||"[]");
+if(data.find(d=>d.email===e)){
+alert("You already attempted test!");
+return;
+}
+
 student={name:n,email:e};
 localStorage.setItem("currentStudent",JSON.stringify(student));
 
 nextSlide(3);
-unlock();
 }
 
-function unlock(){
-let data=JSON.parse(localStorage.getItem("students")||"[]");
-let u=data.find(d=>d.email===student.email);
-
-if(!u) return;
-
-if(u.chapter1){
-c2.disabled=false;
-c2.innerText="Chapter 2";
+// go to chapter
+function startChapter(){
+window.location.href="chapter1.html";
 }
 
-if(u.chapter2){
-c3.disabled=false;
-c3.innerText="Chapter 3";
-}
-}
-
-function openChap(p){
-window.location.href=p;
-}
-
+// auto feedback open
 window.onload=function(){
 if(location.hash=="#feedback"){
 nextSlide(4);
 }
 };
 
-function saveFeedback(){
+// submit final data
+function submitData(){
 
-let res=JSON.parse(localStorage.getItem("students")||"[]");
-let temp=JSON.parse(localStorage.getItem("currentStudent"));
+let result=JSON.parse(localStorage.getItem("testResult"));
 
-let index=res.findIndex(d=>d.email===temp.email);
+let data=JSON.parse(localStorage.getItem("students")||"[]");
 
-if(index>=0){
-res[index].feedback=feedback.value;
+let final={
+name:result.name,
+email:result.email,
+score:result.score,
+answers:result.answers,
+feedback:feedback.value
+};
+
+data.push(final);
+localStorage.setItem("students",JSON.stringify(data));
+
+showResult(final);
 }
 
-localStorage.setItem("students",JSON.stringify(res));
+// show result
+function showResult(d){
+nextSlide(5);
 
-alert("Saved!");
-location.reload();
-}
-
-function showAdmin(){
-let pass=prompt("Password");
-
-if(pass!=="admin123"){
-alert("Wrong");
-return;
-}
-
-document.querySelectorAll(".container").forEach(d=>d.style.display="none");
-admin.style.display="block";
-
-loadAdmin();
-}
-
-function loadAdmin(){
-let arr=JSON.parse(localStorage.getItem("students")||"[]");
-
-arr.forEach(d=>{
-d.total=(d.chapter1||0)+(d.chapter2||0)+(d.chapter3||0);
-});
-
-arr.sort((a,b)=>b.total-a.total);
-
-total.innerText=arr.length;
+result.innerText=`Score: ${d.score}`;
 
 let html="";
-arr.forEach((d,i)=>{
-html+=`<tr><td>${i+1}</td><td>${d.name}</td><td>${d.email}</td><td>${d.total}</td></tr>`;
+d.answers.forEach((a,i)=>{
+html+=`<p>Q${i+1}: Your = ${a.user}, Correct = ${a.correct}</p>`;
 });
+review.innerHTML=html;
+}
 
-data.innerHTML=html;
+// reset
+function resetData(){
+if(confirm("Delete all data?")){
+localStorage.clear();
+location.reload();
+}
 }
 
 </script>
