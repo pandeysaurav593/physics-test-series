@@ -1,62 +1,169 @@
  <!DOCTYPE html>
 <html>
 <head>
-  <title>Physics Test Series</title>
+  <title>Physics Test Pro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body{font-family:Arial;background:#0f172a;color:white;margin:0;}
-    .container{max-width:800px;margin:20px auto;padding:20px;background:#1e293b;border-radius:10px;}
-    input,button,select{padding:10px;margin:8px 0;width:100%;border:none;border-radius:5px;}
-    button{background:#38bdf8;cursor:pointer;}
-    .option{background:#334155;margin:5px 0;padding:10px;border-radius:5px;cursor:pointer;}
+    body{
+      font-family:Arial;
+      background:linear-gradient(135deg,#0f172a,#1e293b);
+      color:white;
+      margin:0;
+    }
+
+    .container{
+      max-width:800px;
+      margin:30px auto;
+      padding:25px;
+      background:#1e293b;
+      border-radius:15px;
+      box-shadow:0 0 20px rgba(0,0,0,0.5);
+      display:none;
+      animation:fade 0.4s ease;
+    }
+
+    #slide1{display:block;}
+
+    @keyframes fade{
+      from{opacity:0;transform:translateY(20px);}
+      to{opacity:1;}
+    }
+
+    input,button,textarea{
+      width:100%;
+      padding:12px;
+      margin:10px 0;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+    }
+
+    button{
+      background:#38bdf8;
+      color:black;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button:hover{background:#0ea5e9;}
+
+    .option{
+      background:#334155;
+      padding:12px;
+      margin:6px 0;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    .option:hover{background:#475569;}
+
     .correct{background:#16a34a !important;}
     .wrong{background:#dc2626 !important;}
 
-    .tracker{display:flex;flex-wrap:wrap;margin-top:10px;}
+    .tracker{
+      display:flex;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
     .box{
       width:35px;height:35px;margin:4px;
       display:flex;align-items:center;justify-content:center;
-      border-radius:5px;background:#475569;
+      border-radius:6px;background:#475569;
     }
+
     .box.correct{background:#16a34a;}
     .box.wrong{background:#dc2626;}
+
+    .progress{
+      background:#334155;
+      height:10px;
+      border-radius:10px;
+      margin-bottom:10px;
+    }
+
+    #progressBar{
+      height:10px;
+      background:#38bdf8;
+      width:0%;
+      border-radius:10px;
+    }
+
+    table{
+      background:white;
+      color:black;
+      border-collapse:collapse;
+    }
+
+    th,td{padding:8px;}
   </style>
 </head>
+
 <body>
 
-<div class="container" id="home">
-  <h2>Physics Test</h2>
-  <input id="name" placeholder="Name">
-  <input id="email" placeholder="Email">
-  <button onclick="startTest()">Start Test</button>
+<!-- Slide 1 -->
+<div class="container" id="slide1">
+  <h2>Instructions</h2>
+  <p>• Each question has 30 seconds</p>
+  <p>• No cheating allowed</p>
+  <button onclick="nextSlide(2)">Next</button>
   <button onclick="showAdmin()">Admin</button>
 </div>
 
-<div class="container" id="test" style="display:none;">
+<!-- Slide 2 -->
+<div class="container" id="slide2">
+  <h2>Enter Details</h2>
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <button onclick="verifyUser()">Verify</button>
+</div>
+
+<!-- Slide 3 -->
+<div class="container" id="slide3">
+  <h2>Ready?</h2>
+  <button onclick="startTest()">Start Test</button>
+</div>
+
+<!-- Slide 4 -->
+<div class="container" id="slide4">
+  <div class="progress"><div id="progressBar"></div></div>
   <h3 id="qText"></h3>
   <div id="options"></div>
-  <p>Time: <span id="timer">30</span></p>
-
-  <!-- Tracker -->
+  <p>Time: <span id="timer"></span></p>
   <div class="tracker" id="tracker"></div>
 </div>
 
-<div class="container" id="result" style="display:none;">
+<!-- Slide 5 -->
+<div class="container" id="slide5">
+  <h2>Feedback</h2>
+  <textarea id="feedback" placeholder="Your feedback"></textarea>
+  <button onclick="submitFeedback()">Submit</button>
+</div>
+
+<!-- Slide 6 -->
+<div class="container" id="slide6">
   <h2 id="score"></h2>
+  <div id="review"></div>
+  <h3>Leaderboard</h3>
+  <div id="leaderboard"></div>
   <button onclick="location.reload()">Restart</button>
 </div>
 
-<div class="container" id="admin" style="display:none;">
+<!-- Admin -->
+<div class="container" id="admin">
   <h2>Admin Panel</h2>
   <p>Total Students: <span id="total"></span></p>
   <table border="1" width="100%">
-    <tr><th>Name</th><th>Email</th><th>Score</th></tr>
+    <tr>
+      <th>Name</th><th>Email</th><th>Score</th><th>Feedback</th>
+    </tr>
     <tbody id="data"></tbody>
   </table>
 </div>
 
 <script>
+
 let qIndex=0, score=0, answers=[], timerInt;
 let student={};
 
@@ -67,23 +174,35 @@ const questions=[
 {q:"Like charges?",o:["Attract","Repel","None","Neutral"],a:1}
 ];
 
-// START
-function startTest(){
+// Slide control
+function nextSlide(n){
+  document.querySelectorAll(".container").forEach(d=>d.style.display="none");
+  document.getElementById("slide"+n).style.display="block";
+}
+
+// Verify
+function verifyUser(){
   let n=name.value.trim();
   let e=email.value.trim();
-  if(!n||!e){alert("Enter details");return;}
+
+  if(!n || !e.includes("@")){
+    alert("Enter valid details");
+    return;
+  }
 
   student={name:n,email:e};
-  qIndex=0;score=0;answers=[];
+  nextSlide(3);
+}
 
-  document.getElementById("home").style.display="none";
-  document.getElementById("test").style.display="block";
-
+// Start Test
+function startTest(){
+  qIndex=0; score=0; answers=[];
+  nextSlide(4);
   createTracker();
   loadQ();
 }
 
-// TRACKER BOXES
+// Tracker
 function createTracker(){
   tracker.innerHTML="";
   questions.forEach((_,i)=>{
@@ -91,11 +210,9 @@ function createTracker(){
   });
 }
 
-// LOAD QUESTION
+// Load Question
 function loadQ(){
   clearInterval(timerInt);
-  let t=30;
-  timer.innerText=t;
 
   let q=questions[qIndex];
   qText.innerText=`Q${qIndex+1}: ${q.q}`;
@@ -106,8 +223,15 @@ function loadQ(){
   });
   options.innerHTML=html;
 
+  // progress bar
+  progressBar.style.width=((qIndex+1)/questions.length)*100+"%";
+
+  let t=30;
+  timer.innerText=t;
+
   timerInt=setInterval(()=>{
-    t--; timer.innerText=t;
+    t--;
+    timer.innerText=t;
     if(t<=0){
       clearInterval(timerInt);
       nextQ();
@@ -115,13 +239,13 @@ function loadQ(){
   },1000);
 }
 
-// SELECT ANSWER
+// Select Answer
 function selectAns(i,el){
+  answers[qIndex]=i;
+
   let correct=questions[qIndex].a;
 
-  document.querySelectorAll(".option").forEach(btn=>{
-    btn.onclick=null;
-  });
+  document.querySelectorAll(".option").forEach(btn=>btn.onclick=null);
 
   if(i===correct){
     el.classList.add("correct");
@@ -130,54 +254,98 @@ function selectAns(i,el){
   } else {
     el.classList.add("wrong");
     document.getElementById("box"+qIndex).classList.add("wrong");
-
-    // show correct also
     document.querySelectorAll(".option")[correct].classList.add("correct");
   }
 
   setTimeout(nextQ,1000);
 }
 
-// NEXT QUESTION
+// Next Question
 function nextQ(){
   qIndex++;
   if(qIndex<questions.length){
     loadQ();
   } else {
-    finishTest();
+    nextSlide(5);
   }
 }
 
-// FINISH
-function finishTest(){
+// Feedback
+function submitFeedback(){
+  student.feedback=feedback.value;
+  nextSlide(6);
+  showResult();
+}
+
+// Result
+function showResult(){
+  let percent=(score/questions.length)*100;
+
+  document.getElementById("score").innerText=
+    `Score: ${score}/${questions.length} (${percent.toFixed(1)}%)`;
+
+  let reviewHTML="";
+  questions.forEach((q,i)=>{
+    reviewHTML+=`
+      <p><b>Q${i+1}:</b> ${q.q}</p>
+      <p>Your Answer: ${q.o[answers[i]]||"Not Answered"}</p>
+      <p>Correct: ${q.o[q.a]}</p>
+      <hr>
+    `;
+  });
+
+  review.innerHTML=reviewHTML;
+
+  saveData();
+  loadLeaderboard();
+}
+
+// Save Data
+function saveData(){
   let data=JSON.parse(localStorage.getItem("students")||"[]");
 
-  // FIX: overwrite same email instead of duplicate
-  let existingIndex=data.findIndex(d=>d.email===student.email);
-  if(existingIndex>=0){
-    data[existingIndex]={...student,score};
-  } else {
-    data.push({...student,score});
-  }
+  let index=data.findIndex(d=>d.email===student.email);
+
+  let full={...student,score};
+
+  if(index>=0) data[index]=full;
+  else data.push(full);
 
   localStorage.setItem("students",JSON.stringify(data));
-
-  document.getElementById("test").style.display="none";
-  document.getElementById("result").style.display="block";
-  scoreEl.innerText=`Score: ${score}/${questions.length}`;
 }
 
-// ADMIN
-function showAdmin(){
-  let pass=prompt("Enter Password");
-  if(pass!=="1234"){alert("Wrong");return;}
+// Leaderboard
+function loadLeaderboard(){
+  let data=JSON.parse(localStorage.getItem("students")||"[]");
 
-  document.getElementById("home").style.display="none";
-  document.getElementById("admin").style.display="block";
+  data.sort((a,b)=>b.score-a.score);
+
+  let top=data.slice(0,5);
+
+  let html="";
+  top.forEach((s,i)=>{
+    html+=`<p>${i+1}. ${s.name} - ${s.score}</p>`;
+  });
+
+  leaderboard.innerHTML=html;
+}
+
+// Admin
+function showAdmin(){
+  let pass=prompt("Enter Admin Password");
+
+  if(pass!=="admin123"){
+    alert("Wrong Password");
+    return;
+  }
+
+  document.querySelectorAll(".container").forEach(d=>d.style.display="none");
+  admin.style.display="block";
 
   loadAdmin();
 }
 
+// Load Admin
 function loadAdmin(){
   let dataArr=JSON.parse(localStorage.getItem("students")||"[]");
 
@@ -185,11 +353,19 @@ function loadAdmin(){
 
   let html="";
   dataArr.forEach(d=>{
-    html+=`<tr><td>${d.name}</td><td>${d.email}</td><td>${d.score}</td></tr>`;
+    html+=`
+      <tr>
+        <td>${d.name}</td>
+        <td>${d.email}</td>
+        <td>${d.score}</td>
+        <td>${d.feedback||"-"}</td>
+      </tr>
+    `;
   });
 
-  document.getElementById("data").innerHTML=html;
+  data.innerHTML=html;
 }
+
 </script>
 
 </body>
