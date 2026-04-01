@@ -2,28 +2,75 @@
 <html>
 <body>
 
-<h2>Chapter 1 Test</h2>
-<button onclick="finish()">Finish Test (Demo Score = 5)</button>
+<h2>Physics Chapter 1 Test</h2>
+
+<h3 id="q"></h3>
+<div id="opt"></div>
+<p>Score: <span id="s">0</span></p>
 
 <script>
-let student=JSON.parse(localStorage.getItem("currentStudent"));
+
+let i=0,score=0;
+
+const questions = [
+{q:"SI unit of electric charge is?",o:["Newton","Joule","Coulomb","Watt"],a:2},
+{q:"Charge on an electron is:",o:["+1.6×10⁻¹⁹ C","-1.6×10⁻¹⁹ C","0","+1 C"],a:1},
+{q:"Like charges:",o:["Attract","Repel","No force","Disappear"],a:1},
+{q:"Coulomb’s law is valid for:",o:["Only large charges","Point charges","Moving charges","Neutral bodies"],a:1},
+{q:"Unit of electric field is:",o:["N/C","J/C","Volt","Ampere"],a:0},
+{q:"Electric field direction is:",o:["Direction of positive charge force","Negative charge force","Random","Circular"],a:0},
+{q:"Permittivity of free space is:",o:["8.85×10⁻¹²","9×10⁹","1.6×10⁻¹⁹","3×10⁸"],a:0},
+{q:"Force between charges depends on:",o:["Mass","Distance","Temperature","Color"],a:1},
+{q:"Electric field lines start from:",o:["Negative charge","Positive charge","Neutral point","Anywhere"],a:1},
+{q:"Electric dipole consists of:",o:["Two positive charges","Two negative charges","One positive & one negative","Neutral body"],a:2}
+];
+
+function load(){
+let q=questions[i];
+document.getElementById("q").innerText=q.q;
+
+let html="";
+q.o.forEach((op,ind)=>{
+html+=`<button onclick="ans(${ind})">${op}</button><br>`;
+});
+opt.innerHTML=html;
+}
+
+function ans(ind){
+if(ind===questions[i].a) score++;
+s.innerText=score;
+
+i++;
+if(i<questions.length){
+load();
+}else{
+finish();
+}
+}
 
 function finish(){
+
+let student=JSON.parse(localStorage.getItem("currentStudent"));
 
 let data=JSON.parse(localStorage.getItem("students")||"[]");
 
 let index=data.findIndex(d=>d.email===student.email);
 
 if(index>=0){
-data[index].chapter1=5;
+data[index].chapter1=score;
 }else{
-data.push({...student,chapter1:5});
+data.push({...student,chapter1:score});
 }
 
 localStorage.setItem("students",JSON.stringify(data));
 
+alert("Test Finished!");
+
 window.location.href="index.html#feedback";
 }
+
+load();
+
 </script>
 
 </body>
