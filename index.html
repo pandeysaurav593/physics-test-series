@@ -31,7 +31,7 @@
   <ul>
     <li>Valid email required</li>
     <li>One attempt only</li>
-    <li>Each question has 30 seconds (no timer shown)</li>
+    <li>No refresh during test</li>
     <li>Feedback mandatory</li>
   </ul>
   <button class="btn" onclick="showSlide('form')">Start</button>
@@ -81,15 +81,14 @@
 
 <script>
 
-// 🔥 Firebase Config (ALREADY ADDED)
+// 🔥 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAKbcsJILXKkng3eWv5mt0UwCrFvCoXVH8",
   authDomain: "physics-test-2b91a.firebaseapp.com",
   projectId: "physics-test-2b91a",
   storageBucket: "physics-test-2b91a.firebasestorage.app",
   messagingSenderId: "934239266562",
-  appId: "1:934239266562:web:96cd91f0ce771b208b041b",
-  measurementId: "G-M14TXE09JR"
+  appId: "1:934239266562:web:96cd91f0ce771b208b041b"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -112,6 +111,8 @@ function showSlide(id){
 async function startTest(){
   let name=document.getElementById("name").value.trim();
   let email=document.getElementById("email").value.trim();
+
+  if(!name){alert("Enter name");return;}
 
   let pattern=/^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
   if(!pattern.test(email)){alert("Invalid Email");return;}
@@ -157,7 +158,8 @@ async function finish(){
     name: student.name,
     email: student.email,
     score: score,
-    chapter: "Physics Test"
+    chapter: "Physics Test",
+    time: new Date()
   });
 
   showSlide("result");
@@ -174,7 +176,8 @@ async function submitFeedback(){
     name: student.name,
     email: student.email,
     rating: rating,
-    text: text
+    text: text,
+    time: new Date()
   });
 
   alert("Feedback Submitted ✅");
@@ -186,9 +189,7 @@ function showAdmin(){
   if(p==="1234"){
     showSlide("admin");
     loadAdmin();
-  } else {
-    alert("Wrong password");
-  }
+  } else alert("Wrong password");
 }
 
 // LOAD ADMIN DATA
@@ -207,7 +208,6 @@ async function loadAdmin(){
 
   let f=await db.collection("feedbacks").get();
   fb.innerHTML="";
-
   f.forEach(d=>{
     let x=d.data();
     fb.innerHTML+=`<tr><td>${x.name}</td><td>${x.email}</td><td>${x.rating}</td><td>${x.text}</td></tr>`;
@@ -216,6 +216,8 @@ async function loadAdmin(){
 
 // RESET DATA
 async function resetData(){
+  if(!confirm("Delete all data?")) return;
+
   let res=await db.collection("results").get();
   res.forEach(d=>d.ref.delete());
 
