@@ -1,241 +1,210 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
   <title>Physics Test Portal</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
   <style>
-    body{margin:0;font-family:'Segoe UI',Arial;background:#0f172a;color:white;}
-    .navbar{display:flex;justify-content:space-between;padding:15px 25px;background:#020617;}
-    .logo{font-size:20px;font-weight:bold;color:#38bdf8;cursor:pointer;}
-    .menu a{color:white;margin-left:20px;text-decoration:none;cursor:pointer;}
-    .menu a:hover{color:#38bdf8;}
-    .container{max-width:900px;margin:20px auto;padding:20px;border-radius:10px;background:#1e293b;display:none;}
-    input,textarea,select{padding:10px;width:95%;margin:8px 0;border-radius:5px;border:none;}
-    .btn{padding:10px 20px;background:#38bdf8;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;}
-    .btn:hover{background:#0ea5e9;}
-    .answer-btn{display:block;margin:10px 0;padding:10px;width:100%;background:#38bdf8;border:none;border-radius:5px;cursor:pointer;}
-    .answer-btn:hover{background:#0ea5e9;}
-    .correct{color:green;font-weight:bold;}
-    .wrong{color:red;font-weight:bold;}
-    #timer-bar-container{width:100%;background:#334155;border-radius:5px;margin:10px 0;height:20px;}
-    #timer-bar{width:100%;height:100%;background:#38bdf8;border-radius:5px;transition:width 1s linear;}
-    #timer-text{text-align:right;margin-top:-20px;font-size:14px;}
-    .tracker button{width:40px;height:40px;margin:5px;border:none;border-radius:5px;font-weight:bold;cursor:pointer;}
-    table{width:100%;border-collapse:collapse;margin-top:15px;}
-    th,td{padding:10px;border:1px solid #38bdf8;text-align:left;}
-    th{background:#0ea5e9;}
-    .footer{text-align:center;padding:15px;background:#020617;margin-top:20px;font-size:14px;}
+    body{margin:0;font-family:Arial;background:#0f172a;color:white;}
+    .navbar{display:flex;justify-content:space-between;padding:15px;background:#020617;}
+    .container{max-width:900px;margin:20px auto;padding:20px;background:#1e293b;border-radius:10px;display:none;}
+    .btn{padding:10px;background:#38bdf8;border:none;border-radius:5px;margin-top:10px;cursor:pointer;}
+    .answer-btn{display:block;width:100%;margin:8px 0;padding:10px;}
+    table{width:100%;margin-top:10px;border-collapse:collapse;}
+    td,th{border:1px solid #38bdf8;padding:8px;}
   </style>
 </head>
+
 <body>
 
 <div class="navbar">
-  <div class="logo" onclick="showSlide('home')">Home</div>
-  <div class="menu">
-    <a onclick="showSlide('results')">Results</a>
-    <a onclick="showAdmin()">Admin</a>
-  </div>
+  <div onclick="showSlide('home')">Home</div>
+  <div onclick="showAdmin()">Admin</div>
 </div>
 
-<div class="container" id="home">
-  <h1>Welcome to Physics Test Portal</h1>
+<!-- HOME -->
+<div id="home" class="container">
+  <h2>Instructions</h2>
+  <ul>
+    <li>Valid email required</li>
+    <li>One attempt only</li>
+    <li>30 sec per question</li>
+    <li>Feedback mandatory</li>
+  </ul>
   <button class="btn" onclick="showSlide('form')">Start</button>
 </div>
 
-<div class="container" id="form">
-  <h2>Enter Details</h2>
-  <input type="text" id="studentName" placeholder="Name">
-  <input type="email" id="studentEmail" placeholder="Email">
-  <div id="chapter-container"></div>
+<!-- FORM -->
+<div id="form" class="container">
+  <input id="name" placeholder="Name"><br>
+  <input id="email" placeholder="Email"><br>
+  <button class="btn" onclick="startTest()">Start Test</button>
 </div>
 
-<div class="container" id="test">
-  <div id="timer-bar-container"><div id="timer-bar"></div></div>
-  <div id="timer-text"></div>
-  <div id="question-container"></div>
-  <div class="tracker" id="question-tracker"></div>
+<!-- TEST -->
+<div id="test" class="container">
+  <div id="qBox"></div>
 </div>
 
-<div class="container" id="results">
-  <h2>Results</h2>
-  <p id="student-info"></p>
-  <p id="score"></p>
-  <div id="review"></div>
+<!-- RESULT -->
+<div id="result" class="container">
+  <h3 id="score"></h3>
+
+  <h3>Feedback</h3>
+  <select id="rating">
+    <option value="">Rate</option>
+    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+  </select>
+  <textarea id="fb"></textarea>
+  <button class="btn" onclick="submitFeedback()">Submit</button>
 </div>
 
-<div class="container" id="admin">
-  <h2>Admin</h2>
-  <button class="btn" onclick="adminReset()">Reset</button>
-  <p>Total: <span id="admin-total-students">0</span></p>
+<!-- ADMIN -->
+<div id="admin" class="container">
+  <button onclick="resetData()">Reset All</button>
+  <h3>Total: <span id="total"></span></h3>
+
   <table>
-    <thead><tr><th>Name</th><th>Email</th><th>Chapter</th><th>Score</th></tr></thead>
-    <tbody id="admin-body"></tbody>
+    <thead><tr><th>Name</th><th>Email</th><th>Score</th></tr></thead>
+    <tbody id="data"></tbody>
+  </table>
+
+  <h3>Feedback</h3>
+  <table>
+    <thead><tr><th>Name</th><th>Rating</th><th>Text</th></tr></thead>
+    <tbody id="fbdata"></tbody>
   </table>
 </div>
 
 <script>
-let student={name:"",email:""};
-let currentChapter=0,currentQ=0,userAnswers=[];
-let timerInterval,timeLeft=30;
 
-const chapters=[
-  {name:"Chapter 1",questions:[
-    {q:"Unit of charge?",options:["Coulomb","Newton","Joule","Watt"],answer:0},
-    {q:"Electron charge?",options:["Positive","Negative","Neutral","None"],answer:1}
-  ]}
+// 🔥 Firebase Config (APNA DALNA)
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// DATA
+let student={},qIndex=0,answers=[];
+const questions=[
+  {q:"Unit of charge?",o:["Coulomb","Newton","Joule","Watt"],a:0},
+  {q:"Electron charge?",o:["Positive","Negative","Neutral","None"],a:1}
 ];
 
+// NAV
 function showSlide(id){
-  ["home","form","test","results","admin"].forEach(s=>{
-    document.getElementById(s).style.display="none";
-  });
+  ["home","form","test","result","admin"].forEach(s=>document.getElementById(s).style.display="none");
   document.getElementById(id).style.display="block";
 }
 
-const chapterContainer=document.getElementById("chapter-container");
-chapters.forEach((ch,i)=>{
-  const btn=document.createElement("button");
-  btn.className="btn";
-  btn.innerText=ch.name;
-  btn.onclick=()=>startChapter(i);
-  chapterContainer.appendChild(btn);
-});
+// START TEST
+async function startTest(){
+  let name=document.getElementById("name").value;
+  let email=document.getElementById("email").value;
 
-function startChapter(idx){
-  const name=document.getElementById("studentName").value.trim();
-  const email=document.getElementById("studentEmail").value.trim();
+  let pattern=/^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+  if(!pattern.test(email)){alert("Invalid Email");return;}
 
-  if(!name||!email){alert("Enter details");return;}
+  let snap=await db.collection("results").where("email","==",email).get();
+  if(!snap.empty){alert("Already attempted");return;}
 
   student={name,email};
-  currentChapter=idx;
-  currentQ=0;
-  userAnswers=[];
-
+  qIndex=0;answers=[];
   showSlide("test");
-  initTracker();
-  showQuestion();
+  showQ();
 }
 
-function initTracker(){
-  const tracker=document.getElementById("question-tracker");
-  tracker.innerHTML="";
-  chapters[currentChapter].questions.forEach((q,i)=>{
-    const btn=document.createElement("button");
-    btn.id="q-btn-"+i;
-    btn.innerText=i+1;
-    tracker.appendChild(btn);
-  });
-}
-
-function showQuestion(){
-  clearInterval(timerInterval);
-  timeLeft=30;
-  updateTimer();
-
-  const container=document.getElementById("question-container");
-  container.innerHTML="";
-
-  const qArr=chapters[currentChapter].questions;
-
-  if(currentQ<qArr.length){
-    const q=qArr[currentQ];
-    container.innerHTML=`<strong>Q${currentQ+1}: ${q.q}</strong>`;
-
-    ["A","B","C","D"].forEach((l,i)=>{
-      const btn=document.createElement("button");
-      btn.className="answer-btn";
-      btn.innerText=`${l}. ${q.options[i]}`;
-      btn.onclick=()=>selectAnswer(i);
-      container.appendChild(btn);
+// SHOW QUESTION
+function showQ(){
+  let box=document.getElementById("qBox");
+  if(qIndex<questions.length){
+    let q=questions[qIndex];
+    box.innerHTML=`<h3>${q.q}</h3>`;
+    q.o.forEach((opt,i)=>{
+      box.innerHTML+=`<button class='answer-btn' onclick='ans(${i})'>${opt}</button>`;
     });
-
-    timerInterval=setInterval(()=>{
-      timeLeft--;
-      updateTimer();
-      if(timeLeft<=0){
-        clearInterval(timerInterval);
-        selectAnswer(null);
-      }
-    },1000);
-
-  } else submitTest();
+  } else finish();
 }
 
-function updateTimer(){
-  document.getElementById("timer-bar").style.width=(timeLeft/30*100)+"%";
-  document.getElementById("timer-text").innerText=timeLeft+"s";
+// ANSWER
+function ans(i){
+  answers.push(i);
+  qIndex++;
+  showQ();
 }
 
-function selectAnswer(idx){
-  const qArr=chapters[currentChapter].questions;
-  userAnswers.push(idx);
-
-  const btn=document.getElementById("q-btn-"+currentQ);
-
-  if(idx===null){
-    btn.style.background="gray";
-  } else if(idx===qArr[currentQ].answer){
-    btn.style.background="green";
-  } else {
-    btn.style.background="red";
-  }
-
-  currentQ++;
-  showQuestion();
-}
-
-function submitTest(){
-  clearInterval(timerInterval);
-  showSlide("results");
-
-  const qArr=chapters[currentChapter].questions;
+// FINISH
+async function finish(){
   let score=0;
-  let reviewHTML="";
+  questions.forEach((q,i)=>{if(q.a===answers[i])score++;});
 
-  qArr.forEach((q,i)=>{
-    if(userAnswers[i]===q.answer) score++;
-    reviewHTML+=`<p>Q${i+1}: ${q.options[userAnswers[i]]||"No Answer"} | Correct: ${q.options[q.answer]}</p>`;
+  document.getElementById("score").innerText=`Score: ${score}`;
+
+  await db.collection("results").add({
+    name:student.name,email:student.email,score
   });
 
-  document.getElementById("student-info").innerText=`Name: ${student.name}, Email: ${student.email}`;
-  document.getElementById("score").innerText=`Score: ${score}/${qArr.length}`;
-  document.getElementById("review").innerHTML=reviewHTML;
-
-  let results=JSON.parse(localStorage.getItem("results")||"[]");
-  results.push({...student,chapter:chapters[currentChapter].name,score});
-  localStorage.setItem("results",JSON.stringify(results));
+  showSlide("result");
 }
 
+// FEEDBACK
+async function submitFeedback(){
+  let rating=document.getElementById("rating").value;
+  let text=document.getElementById("fb").value;
+
+  await db.collection("feedbacks").add({
+    name:student.name,rating,text
+  });
+
+  alert("Submitted");
+}
+
+// ADMIN
 function showAdmin(){
-  const pass=prompt("Password:");
-  if(pass==="1234"){
-    showSlide("admin");
-    loadAdmin();
-  }
+  let p=prompt("pass");
+  if(p==="1234"){showSlide("admin");loadAdmin();}
 }
 
-function loadAdmin(){
-  const body=document.getElementById("admin-body");
-  body.innerHTML="";
-  const results=JSON.parse(localStorage.getItem("results")||"[]");
+async function loadAdmin(){
+  let data=document.getElementById("data");
+  let fb=document.getElementById("fbdata");
 
-  document.getElementById("admin-total-students").innerText=results.length;
+  let res=await db.collection("results").get();
+  data.innerHTML="";
+  document.getElementById("total").innerText=res.size;
 
-  results.forEach(r=>{
-    const row=document.createElement("tr");
-    row.innerHTML=`<td>${r.name}</td><td>${r.email}</td><td>${r.chapter}</td><td>${r.score}</td>`;
-    body.appendChild(row);
+  res.forEach(d=>{
+    let r=d.data();
+    data.innerHTML+=`<tr><td>${r.name}</td><td>${r.email}</td><td>${r.score}</td></tr>`;
+  });
+
+  let f=await db.collection("feedbacks").get();
+  fb.innerHTML="";
+  f.forEach(d=>{
+    let x=d.data();
+    fb.innerHTML+=`<tr><td>${x.name}</td><td>${x.rating}</td><td>${x.text}</td></tr>`;
   });
 }
 
-function adminReset(){
-  localStorage.removeItem("results");
+// RESET
+async function resetData(){
+  let res=await db.collection("results").get();
+  res.forEach(d=>d.ref.delete());
+
+  let f=await db.collection("feedbacks").get();
+  f.forEach(d=>d.ref.delete());
+
   alert("Reset Done");
   loadAdmin();
 }
 
 showSlide("home");
-</script>
 
+</script>
 </body>
 </html>
