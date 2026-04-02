@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Physics Test Portal</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
@@ -29,7 +31,7 @@
   <ul>
     <li>Valid email required</li>
     <li>One attempt only</li>
-    <li>30 sec per question</li>
+    <li>Each question has 30 seconds (no timer shown)</li>
     <li>Feedback mandatory</li>
   </ul>
   <button class="btn" onclick="showSlide('form')">Start</button>
@@ -56,14 +58,14 @@
     <option value="">Rate</option>
     <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
   </select>
-  <textarea id="fb"></textarea>
+  <textarea id="fb" placeholder="Write feedback"></textarea>
   <button class="btn" onclick="submitFeedback()">Submit</button>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="container">
-  <button onclick="resetData()">Reset All</button>
-  <h3>Total: <span id="total"></span></h3>
+  <button class="btn" onclick="resetData()">Reset All</button>
+  <h3>Total Students: <span id="total"></span></h3>
 
   <table>
     <thead><tr><th>Name</th><th>Email</th><th>Score</th></tr></thead>
@@ -72,18 +74,22 @@
 
   <h3>Feedback</h3>
   <table>
-    <thead><tr><th>Name</th><th>Rating</th><th>Text</th></tr></thead>
+    <thead><tr><th>Name</th><th>Email</th><th>Rating</th><th>Text</th></tr></thead>
     <tbody id="fbdata"></tbody>
   </table>
 </div>
 
 <script>
 
-// 🔥 Firebase Config (APNA DALNA)
+// 🔥 Firebase Config (ALREADY ADDED)
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
+  apiKey: "AIzaSyAKbcsJILXKkng3eWv5mt0UwCrFvCoXVH8",
+  authDomain: "physics-test-2b91a.firebaseapp.com",
+  projectId: "physics-test-2b91a",
+  storageBucket: "physics-test-2b91a.firebasestorage.app",
+  messagingSenderId: "934239266562",
+  appId: "1:934239266562:web:96cd91f0ce771b208b041b",
+  measurementId: "G-M14TXE09JR"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -96,7 +102,7 @@ const questions=[
   {q:"Electron charge?",o:["Positive","Negative","Neutral","None"],a:1}
 ];
 
-// NAV
+// NAVIGATION
 function showSlide(id){
   ["home","form","test","result","admin"].forEach(s=>document.getElementById(s).style.display="none");
   document.getElementById(id).style.display="block";
@@ -104,14 +110,14 @@ function showSlide(id){
 
 // START TEST
 async function startTest(){
-  let name=document.getElementById("name").value;
-  let email=document.getElementById("email").value;
+  let name=document.getElementById("name").value.trim();
+  let email=document.getElementById("email").value.trim();
 
   let pattern=/^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
   if(!pattern.test(email)){alert("Invalid Email");return;}
 
   let snap=await db.collection("results").where("email","==",email).get();
-  if(!snap.empty){alert("Already attempted");return;}
+  if(!snap.empty){alert("You already attempted test!");return;}
 
   student={name,email};
   qIndex=0;answers=[];
@@ -122,9 +128,11 @@ async function startTest(){
 // SHOW QUESTION
 function showQ(){
   let box=document.getElementById("qBox");
+
   if(qIndex<questions.length){
     let q=questions[qIndex];
-    box.innerHTML=`<h3>${q.q}</h3>`;
+    box.innerHTML=`<h3>Q${qIndex+1}: ${q.q}</h3>`;
+
     q.o.forEach((opt,i)=>{
       box.innerHTML+=`<button class='answer-btn' onclick='ans(${i})'>${opt}</button>`;
     });
@@ -138,15 +146,18 @@ function ans(i){
   showQ();
 }
 
-// FINISH
+// FINISH TEST
 async function finish(){
   let score=0;
   questions.forEach((q,i)=>{if(q.a===answers[i])score++;});
 
-  document.getElementById("score").innerText=`Score: ${score}`;
+  document.getElementById("score").innerText=`Score: ${score}/${questions.length}`;
 
   await db.collection("results").add({
-    name:student.name,email:student.email,score
+    name: student.name,
+    email: student.email,
+    score: score,
+    chapter: "Physics Test"
   });
 
   showSlide("result");
@@ -157,19 +168,30 @@ async function submitFeedback(){
   let rating=document.getElementById("rating").value;
   let text=document.getElementById("fb").value;
 
+  if(!rating){alert("Please give rating");return;}
+
   await db.collection("feedbacks").add({
-    name:student.name,rating,text
+    name: student.name,
+    email: student.email,
+    rating: rating,
+    text: text
   });
 
-  alert("Submitted");
+  alert("Feedback Submitted ✅");
 }
 
-// ADMIN
+// ADMIN PANEL
 function showAdmin(){
-  let p=prompt("pass");
-  if(p==="1234"){showSlide("admin");loadAdmin();}
+  let p=prompt("Enter password");
+  if(p==="1234"){
+    showSlide("admin");
+    loadAdmin();
+  } else {
+    alert("Wrong password");
+  }
 }
 
+// LOAD ADMIN DATA
 async function loadAdmin(){
   let data=document.getElementById("data");
   let fb=document.getElementById("fbdata");
@@ -185,13 +207,14 @@ async function loadAdmin(){
 
   let f=await db.collection("feedbacks").get();
   fb.innerHTML="";
+
   f.forEach(d=>{
     let x=d.data();
-    fb.innerHTML+=`<tr><td>${x.name}</td><td>${x.rating}</td><td>${x.text}</td></tr>`;
+    fb.innerHTML+=`<tr><td>${x.name}</td><td>${x.email}</td><td>${x.rating}</td><td>${x.text}</td></tr>`;
   });
 }
 
-// RESET
+// RESET DATA
 async function resetData(){
   let res=await db.collection("results").get();
   res.forEach(d=>d.ref.delete());
@@ -199,10 +222,11 @@ async function resetData(){
   let f=await db.collection("feedbacks").get();
   f.forEach(d=>d.ref.delete());
 
-  alert("Reset Done");
+  alert("All Data Reset ✅");
   loadAdmin();
 }
 
+// START
 showSlide("home");
 
 </script>
